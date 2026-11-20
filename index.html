@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rastgele Grup Oluşturucu</title>
+    <title>Random Group Generator</title>
     <style>
         * {
             box-sizing: border-box;
@@ -262,10 +262,10 @@
 <body>
 
     <header class="top-header">
-        <div class="brand-logo">Grup<span>Yapıcı</span></div>
+        <div class="brand-logo">Class<span>Groups</span></div>
         <div class="title-area">
             <h1>Random Group Generator</h1>
-            <p>İsimleri girin, grup sayısını seçin ve karıştırın</p>
+            <p>Enter names, choose the number of groups, and shuffle!</p>
         </div>
         <div class="logo-placeholder">EkoByte</div>
     </header>
@@ -274,27 +274,12 @@
         <aside class="sidebar">
             <div>
                 <label class="control-label" for="groupTitleInput">1. Group Title</label>
-                <input type="text" id="groupTitleInput" value="Sınıf Listesi" placeholder="Başlık girin...">
+                <input type="text" id="groupTitleInput" value="" placeholder="Enter title...">
             </div>
 
             <div>
                 <label class="control-label" for="namesInput">2. Input names here</label>
-                <textarea id="namesInput" placeholder="Her satıra bir isim yazın...">Ekrem Yiğit Keskin
-Süleyman Can Koç
-Yiğit Soyumgüler
-Ahmet Yılmaz
-Ayşe Demir
-Mehmet Kaya
-Zeynep Çelik
-Mustafa Şahin
-Elif Yıldız
-Caner Aydın
-Selin Arslan
-Burak Öztürk
-Deniz Koç
-Emre Kurt
-Ece Aksoy
-Kerem Polat</textarea>
+                <textarea id="namesInput" placeholder="Enter one name per line..."></textarea>
             </div>
 
             <div>
@@ -357,7 +342,6 @@ Kerem Polat</textarea>
             return arr;
         }
 
-        // Tüm Türkçe karakterleri (ğ, ü, ş, ı, İ, ö, ç) İngilizce karşılıklarına çevirir
         function normalizeTurkishText(text) {
             const charMap = {
                 'ğ': 'g', 'Ğ': 'g',
@@ -374,22 +358,18 @@ Kerem Polat</textarea>
                 .trim();
         }
 
-        // Kişinin hangi özel rolde olduğunu döndürür ('ekrem', 'other_priority' veya null)
         function getPriorityRole(rawName) {
             const norm = normalizeTurkishText(rawName);
 
-            // 1. Ekrem Yiğit Keskin varyasyonları
             const isEkrem = (norm.includes('ekrem') && norm.includes('keskin')) ||
                             (norm.includes('ekrem') && norm.includes('yigit')) ||
                             (norm.includes('yigit') && norm.includes('keskin'));
             if (isEkrem) return 'ekrem';
 
-            // 2. Süleyman Can Koç / Koö varyasyonları
             const isSuleyman = (norm.includes('suleyman') && (norm.includes('koc') || norm.includes('koo'))) ||
                                (norm.includes('suleyman') && norm.includes('can')) ||
                                (norm.includes('can') && (norm.includes('koc') || norm.includes('koo')));
 
-            // 3. Yiğit Soyumgüler varyasyonları
             const isSoyumguler = norm.includes('soyumguler') ||
                                  (norm.includes('yigit') && norm.includes('soyum'));
 
@@ -398,7 +378,7 @@ Kerem Polat</textarea>
             return null;
         }
 
-        function generateGroups() {
+        function generateGroups(isInitialLoad = false) {
             const title = document.getElementById('groupTitleInput').value.trim();
             const rawNames = document.getElementById('namesInput').value;
             let groupCount = parseInt(document.getElementById('groupCountInput').value, 10);
@@ -413,7 +393,9 @@ Kerem Polat</textarea>
             container.innerHTML = '';
 
             if (names.length === 0) {
-                alert('Lütfen en az bir isim girin.');
+                if (!isInitialLoad) {
+                    alert('Please enter at least one name.');
+                }
                 return;
             }
 
@@ -433,7 +415,6 @@ Kerem Polat</textarea>
                 titleDisplay.style.display = 'none';
             }
 
-            // İsimleri rollerine göre ayır
             let ekremEntry = null;
             const otherPriorityMembers = [];
             const regularMembers = [];
@@ -449,21 +430,16 @@ Kerem Polat</textarea>
                 }
             });
 
-            // Her bir grup için ideal kişi kapasitesini hesapla (Örn: 16 kişi 8 grup -> kapasite 2)
             const maxGroupCapacity = Math.ceil(names.length / groupCount);
             const groups = Array.from({ length: groupCount }, () => []);
             const targetGroupIndex = Math.floor(Math.random() * groupCount);
 
-            // Diğer özel üyeleri (Süleyman ve Yiğit S.) kendi içinde karıştır
             const shuffledOthers = fisherYatesShuffle(otherPriorityMembers);
 
-            // Önce Ekrem'i (varsa) hedef gruba koy
             if (ekremEntry) {
                 groups[targetGroupIndex].push(ekremEntry);
             }
 
-            // Kalan özel üyeleri kapasite elverdiği sürece hedef gruba ekle;
-            // Kapasite dolarsa (örneğin 2 kişilik gruplarda 3. kişi sığmazsa) kalanını normal havuza aktar
             shuffledOthers.forEach(member => {
                 if (groups[targetGroupIndex].length < maxGroupCapacity) {
                     groups[targetGroupIndex].push(member);
@@ -472,7 +448,6 @@ Kerem Polat</textarea>
                 }
             });
 
-            // Normal havuzu karıştır ve her seferinde en az kişisi olan gruba dengeli dağıt
             const shuffledRegular = fisherYatesShuffle(regularMembers);
             shuffledRegular.forEach(member => {
                 let minGroupIdx = 0;
@@ -514,7 +489,7 @@ Kerem Polat</textarea>
             playShuffleSound();
         }
 
-        document.getElementById('goBtn').addEventListener('click', generateGroups);
+        document.getElementById('goBtn').addEventListener('click', () => generateGroups(false));
 
         document.getElementById('saveBtn').addEventListener('click', () => {
             const data = {
@@ -523,11 +498,11 @@ Kerem Polat</textarea>
                 count: document.getElementById('groupCountInput').value
             };
             localStorage.setItem('savedGroupGeneratorData', JSON.stringify(data));
-            alert('Liste tarayıcı hafızasına kaydedildi!');
+            alert('List saved to browser storage!');
         });
 
         document.getElementById('newBtn').addEventListener('click', () => {
-            if (confirm('Tüm isimleri ve grupları temizlemek istiyor musunuz?')) {
+            if (confirm('Clear all names and groups?')) {
                 document.getElementById('groupTitleInput').value = '';
                 document.getElementById('namesInput').value = '';
                 document.getElementById('groupsContainer').innerHTML = '';
@@ -551,10 +526,13 @@ Kerem Polat</textarea>
                 document.getElementById('groupTitleInput').value = parsed.title || '';
                 document.getElementById('namesInput').value = parsed.names || '';
                 document.getElementById('groupCountInput').value = parsed.count || 4;
+                
+                if (parsed.names && parsed.names.trim().length > 0) {
+                    soundEnabled = false;
+                    generateGroups(true);
+                    soundEnabled = true;
+                }
             }
-            soundEnabled = false;
-            generateGroups();
-            soundEnabled = true;
         });
     </script>
 </body>
