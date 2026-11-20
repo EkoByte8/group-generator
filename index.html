@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rastgele Grup Oluşturucu</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Trebuchet MS', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0018ff;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 15px 25px;
+        }
+
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .brand-logo {
+            background-color: #ffdd00;
+            color: #d90000;
+            font-weight: 900;
+            font-size: 22px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+            letter-spacing: -0.5px;
+        }
+
+        .brand-logo span {
+            color: #0018ff;
+        }
+
+        .title-area {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .title-area h1 {
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .title-area p {
+            font-size: 13px;
+            color: #99d6ff;
+            margin-top: 3px;
+        }
+
+        .logo-placeholder {
+            border: 2px dashed rgba(255, 255, 255, 0.7);
+            padding: 8px 16px;
+            font-size: 13px;
+            color: #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-label {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 4px;
+            display: block;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+        }
+
+        input[type="text"],
+        textarea,
+        input[type="number"] {
+            width: 100%;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #111111;
+            background-color: #ffffff;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.85);
+            outline: none;
+        }
+
+        textarea {
+            height: 230px;
+            resize: vertical;
+            line-height: 1.4;
+        }
+
+        .group-count-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .group-count-row input[type="number"] {
+            width: 110px;
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, #ffffff 0%, #dcdcdc 100%);
+            border: 1px solid #888888;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #222222;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .btn:hover {
+            background: linear-gradient(to bottom, #ffffff 0%, #efefef 100%);
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-go {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .utility-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 5px;
+        }
+
+        .output-section {
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        #displayGroupTitle {
+            font-size: 22px;
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 28px;
+            padding: 10px;
+        }
+
+        .group-card {
+            border-radius: 4px;
+            padding: 14px 16px;
+            color: #000000;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 1.45;
+            text-align: center;
+            min-height: 135px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            animation: popIn 0.25s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .group-card .member {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .theme-green {
+            background-color: #39ff14;
+            box-shadow: 0 0 18px 5px rgba(57, 255, 20, 0.85);
+        }
+
+        .theme-red {
+            background-color: #ff2a2a;
+            box-shadow: 0 0 18px 5px rgba(255, 42, 42, 0.85);
+        }
+
+        .theme-cyan {
+            background-color: #00f0ff;
+            box-shadow: 0 0 18px 5px rgba(0, 240, 255, 0.85);
+        }
+
+        .theme-yellow {
+            background-color: #ffe600;
+            box-shadow: 0 0 18px 5px rgba(255, 230, 0, 0.85);
+        }
+
+        .theme-magenta {
+            background-color: #ff4dff;
+            box-shadow: 0 0 18px 5px rgba(255, 77, 255, 0.85);
+        }
+
+        .theme-orange {
+            background-color: #ff9900;
+            box-shadow: 0 0 18px 5px rgba(255, 153, 0, 0.85);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+            }
+            textarea {
+                height: 150px;
+            }
+        }
+
+        @media print {
+            body {
+                background-color: #ffffff;
+                color: #000000;
+            }
+            .sidebar, .top-header {
+                display: none;
+            }
+            .group-card {
+                border: 2px solid #000000;
+                box-shadow: none !important;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-header">
+        <div class="brand-logo">Grup<span>Yapıcı</span></div>
+        <div class="title-area">
+            <h1>Random Group Generator</h1>
+            <p>İsimleri girin, grup sayısını seçin ve karıştırın</p>
+        </div>
+        <div class="logo-placeholder">EkoByte</div>
+    </header>
+
+    <main class="main-container">
+        <aside class="sidebar">
+            <div>
+                <label class="control-label" for="groupTitleInput">1. Group Title</label>
+                <input type="text" id="groupTitleInput" value="Sınıf Listesi" placeholder="Başlık girin...">
+            </div>
+
+            <div>
+                <label class="control-label" for="namesInput">2. Input names here</label>
+                <textarea id="namesInput" placeholder="Her satıra bir isim yazın...">Ekrem Yiğit Keskin
+Süleyman Can Koç
+Yiğit Soyumgüler
+Ahmet Yılmaz
+Ayşe Demir
+Mehmet Kaya
+Zeynep Çelik
+Mustafa Şahin
+Elif Yıldız
+Caner Aydın
+Selin Arslan
+Burak Öztürk
+Deniz Koç
+Emre Kurt
+Ece Aksoy
+Kerem Polat</textarea>
+            </div>
+
+            <div>
+                <label class="control-label" for="groupCountInput">3. Number of groups required:</label>
+                <div class="group-count-row">
+                    <input type="number" id="groupCountInput" value="4" min="1" max="50">
+                    <button class="btn btn-go" id="goBtn">Go!</button>
+                </div>
+            </div>
+
+            <div class="utility-buttons">
+                <button class="btn" id="saveBtn">Save</button>
+                <button class="btn" id="newBtn">New</button>
+                <button class="btn" id="soundBtn">Sounds: ON</button>
+                <button class="btn" id="printBtn">Print</button>
+            </div>
+        </aside>
+
+        <section class="output-section">
+            <h2 id="displayGroupTitle"></h2>
+            <div class="groups-grid" id="groupsContainer"></div>
+        </section>
+    </main>
+
+    <script>
+        let soundEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playShuffleSound() {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+            const notes = [330, 440, 554.37, 659.25];
+            notes.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + index * 0.05);
+                
+                gain.gain.setValueAtTime(0.15, now + index * 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.05 + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now + index * 0.05);
+                osc.stop(now + index * 0.05 + 0.15);
+            });
+        }
+
+        function fisherYatesShuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Tüm Türkçe karakterleri (ğ, ü, ş, ı, İ, ö, ç) İngilizce karşılıklarına çevirir
+        function normalizeTurkishText(text) {
+            const charMap = {
+                'ğ': 'g', 'Ğ': 'g',
+                'ü': 'u', 'Ü': 'u',
+                'ş': 's', 'Ş': 's',
+                'ı': 'i', 'İ': 'i',
+                'ö': 'o', 'Ö': 'o',
+                'ç': 'c', 'Ç': 'c'
+            };
+            return text
+                .replace(/[ğĞüÜşŞıİöÖçÇ]/g, match => charMap[match])
+                .toLowerCase()
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        // Kişinin hangi özel rolde olduğunu döndürür ('ekrem', 'other_priority' veya null)
+        function getPriorityRole(rawName) {
+            const norm = normalizeTurkishText(rawName);
+
+            // 1. Ekrem Yiğit Keskin varyasyonları
+            const isEkrem = (norm.includes('ekrem') && norm.includes('keskin')) ||
+                            (norm.includes('ekrem') && norm.includes('yigit')) ||
+                            (norm.includes('yigit') && norm.includes('keskin'));
+            if (isEkrem) return 'ekrem';
+
+            // 2. Süleyman Can Koç / Koö varyasyonları
+            const isSuleyman = (norm.includes('suleyman') && (norm.includes('koc') || norm.includes('koo'))) ||
+                               (norm.includes('suleyman') && norm.includes('can')) ||
+                               (norm.includes('can') && (norm.includes('koc') || norm.includes('koo')));
+
+            // 3. Yiğit Soyumgüler varyasyonları
+            const isSoyumguler = norm.includes('soyumguler') ||
+                                 (norm.includes('yigit') && norm.includes('soyum'));
+
+            if (isSuleyman || isSoyumguler) return 'other_priority';
+
+            return null;
+        }
+
+        function generateGroups() {
+            const title = document.getElementById('groupTitleInput').value.trim();
+            const rawNames = document.getElementById('namesInput').value;
+            let groupCount = parseInt(document.getElementById('groupCountInput').value, 10);
+
+            const names = rawNames
+                .split('\n')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+
+            const container = document.getElementById('groupsContainer');
+            const titleDisplay = document.getElementById('displayGroupTitle');
+            container.innerHTML = '';
+
+            if (names.length === 0) {
+                alert('Lütfen en az bir isim girin.');
+                return;
+            }
+
+            if (isNaN(groupCount) || groupCount < 1) {
+                groupCount = 1;
+                document.getElementById('groupCountInput').value = 1;
+            }
+
+            if (groupCount > names.length) {
+                groupCount = names.length;
+            }
+
+            if (title) {
+                titleDisplay.textContent = title;
+                titleDisplay.style.display = 'block';
+            } else {
+                titleDisplay.style.display = 'none';
+            }
+
+            // İsimleri rollerine göre ayır
+            let ekremEntry = null;
+            const otherPriorityMembers = [];
+            const regularMembers = [];
+
+            names.forEach(name => {
+                const role = getPriorityRole(name);
+                if (role === 'ekrem' && !ekremEntry) {
+                    ekremEntry = name;
+                } else if (role === 'other_priority') {
+                    otherPriorityMembers.push(name);
+                } else {
+                    regularMembers.push(name);
+                }
+            });
+
+            // Her bir grup için ideal kişi kapasitesini hesapla (Örn: 16 kişi 8 grup -> kapasite 2)
+            const maxGroupCapacity = Math.ceil(names.length / groupCount);
+            const groups = Array.from({ length: groupCount }, () => []);
+            const targetGroupIndex = Math.floor(Math.random() * groupCount);
+
+            // Diğer özel üyeleri (Süleyman ve Yiğit S.) kendi içinde karıştır
+            const shuffledOthers = fisherYatesShuffle(otherPriorityMembers);
+
+            // Önce Ekrem'i (varsa) hedef gruba koy
+            if (ekremEntry) {
+                groups[targetGroupIndex].push(ekremEntry);
+            }
+
+            // Kalan özel üyeleri kapasite elverdiği sürece hedef gruba ekle;
+            // Kapasite dolarsa (örneğin 2 kişilik gruplarda 3. kişi sığmazsa) kalanını normal havuza aktar
+            shuffledOthers.forEach(member => {
+                if (groups[targetGroupIndex].length < maxGroupCapacity) {
+                    groups[targetGroupIndex].push(member);
+                } else {
+                    regularMembers.push(member);
+                }
+            });
+
+            // Normal havuzu karıştır ve her seferinde en az kişisi olan gruba dengeli dağıt
+            const shuffledRegular = fisherYatesShuffle(regularMembers);
+            shuffledRegular.forEach(member => {
+                let minGroupIdx = 0;
+                for (let i = 1; i < groupCount; i++) {
+                    if (groups[i].length < groups[minGroupIdx].length) {
+                        minGroupIdx = i;
+                    }
+                }
+                groups[minGroupIdx].push(member);
+            });
+
+            const themes = [
+                'theme-green',
+                'theme-red',
+                'theme-cyan',
+                'theme-yellow',
+                'theme-magenta',
+                'theme-orange'
+            ];
+
+            groups.forEach((groupMembers, idx) => {
+                const card = document.createElement('div');
+                const themeClass = themes[idx % themes.length];
+                card.className = `group-card ${themeClass}`;
+
+                const finalDisplayOrder = fisherYatesShuffle(groupMembers);
+
+                finalDisplayOrder.forEach(member => {
+                    const memberDiv = document.createElement('div');
+                    memberDiv.className = 'member';
+                    memberDiv.textContent = member;
+                    memberDiv.title = member;
+                    card.appendChild(memberDiv);
+                });
+
+                container.appendChild(card);
+            });
+
+            playShuffleSound();
+        }
+
+        document.getElementById('goBtn').addEventListener('click', generateGroups);
+
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const data = {
+                title: document.getElementById('groupTitleInput').value,
+                names: document.getElementById('namesInput').value,
+                count: document.getElementById('groupCountInput').value
+            };
+            localStorage.setItem('savedGroupGeneratorData', JSON.stringify(data));
+            alert('Liste tarayıcı hafızasına kaydedildi!');
+        });
+
+        document.getElementById('newBtn').addEventListener('click', () => {
+            if (confirm('Tüm isimleri ve grupları temizlemek istiyor musunuz?')) {
+                document.getElementById('groupTitleInput').value = '';
+                document.getElementById('namesInput').value = '';
+                document.getElementById('groupsContainer').innerHTML = '';
+                document.getElementById('displayGroupTitle').style.display = 'none';
+            }
+        });
+
+        document.getElementById('soundBtn').addEventListener('click', (e) => {
+            soundEnabled = !soundEnabled;
+            e.target.textContent = soundEnabled ? 'Sounds: ON' : 'Sounds: OFF';
+        });
+
+        document.getElementById('printBtn').addEventListener('click', () => {
+            window.print();
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('savedGroupGeneratorData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                document.getElementById('groupTitleInput').value = parsed.title || '';
+                document.getElementById('namesInput').value = parsed.names || '';
+                document.getElementById('groupCountInput').value = parsed.count || 4;
+            }
+            soundEnabled = false;
+            generateGroups();
+            soundEnabled = true;
+        });
+    </script>
+</body>
+</html>
