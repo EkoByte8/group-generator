@@ -38,10 +38,27 @@
             border: 2px solid #ffffff;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
             letter-spacing: -0.5px;
+            user-select: none;
         }
 
-        .brand-logo span {
+        .brand-logo span.morse-dot,
+        .brand-logo span.morse-dash {
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.08s;
+        }
+
+        .brand-logo span.morse-dot {
+            color: #d90000;
+        }
+
+        .brand-logo span.morse-dash {
             color: #0018ff;
+        }
+
+        .brand-logo span.morse-dot:active,
+        .brand-logo span.morse-dash:active {
+            transform: scale(0.92);
         }
 
         .title-area {
@@ -352,7 +369,7 @@
             box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
             border-radius: 8px;
             width: 100%;
-            max-width: 460px;
+            max-width: 470px;
             padding: 20px;
             color: #ffffff;
             max-height: 90vh;
@@ -432,12 +449,19 @@
             margin-bottom: 14px;
         }
 
+        .tt-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
         .tt-section h4 {
             font-size: 14px;
             color: #ffdd00;
-            margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin: 0;
         }
 
         .tt-toggle-row {
@@ -460,6 +484,12 @@
             color: #99d6ff;
             margin-top: 6px;
             line-height: 1.35;
+        }
+
+        .blacklist-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         @media (max-width: 768px) {
@@ -494,7 +524,9 @@
 <body>
 
     <header class="top-header">
-        <div class="brand-logo">Class<span>Groups</span></div>
+        <div class="brand-logo">
+            <span class="morse-dot" id="morseDotBtn">Class</span><span class="morse-dash" id="morseDashBtn">Groups</span>
+        </div>
         <div class="title-area">
             <h1>Random Group Generator</h1>
             <p>Enter names, choose the number of groups, and shuffle!</p>
@@ -562,7 +594,9 @@
             </div>
 
             <div class="tt-section">
-                <h4>1. Group Leader Picker</h4>
+                <div class="tt-section-header">
+                    <h4>1. Group Leader Picker</h4>
+                </div>
                 <div class="tt-toggle-row">
                     <span>Assign a random leader per group:</span>
                     <button class="btn btn-teacher" id="pickLeadersBtn">Pick Leaders</button>
@@ -571,7 +605,9 @@
             </div>
 
             <div class="tt-section">
-                <h4>2. Activity Countdown Timer</h4>
+                <div class="tt-section-header">
+                    <h4>2. Activity Countdown Timer</h4>
+                </div>
                 <div class="tt-input-row">
                     <input type="number" id="timerMinutesInput" value="5" min="1" max="120" style="width: 85px;">
                     <span style="font-size: 13px; font-weight: bold;">min</span>
@@ -584,7 +620,7 @@
         </div>
     </div>
 
-    <!-- Secret Dev Tools Modal (Blacklist, Drag & Drop, Priority Override) -->
+    <!-- Secret Dev Tools Modal (Multi-Blacklist, Custom Pair, Drag & Drop) -->
     <div class="modal-overlay" id="secretToolsModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -593,16 +629,9 @@
             </div>
 
             <div class="tt-section">
-                <h4>1. Priority Squad Rule</h4>
-                <div class="tt-toggle-row">
-                    <span>Built-in Squad Grouping:</span>
-                    <button class="btn" id="togglePriorityBtn">ENABLED</button>
+                <div class="tt-section-header">
+                    <h4>1. Custom Pair Lock (Keep Together)</h4>
                 </div>
-                <p class="tt-hint">Turn OFF for 100% pure random grouping.</p>
-            </div>
-
-            <div class="tt-section">
-                <h4>2. Custom Pair Lock (Keep Together)</h4>
                 <div class="tt-input-row">
                     <input type="text" id="pairName1" placeholder="First name...">
                     <input type="text" id="pairName2" placeholder="Second name...">
@@ -611,16 +640,18 @@
             </div>
 
             <div class="tt-section">
-                <h4>3. Blacklist (Keep Apart)</h4>
-                <div class="tt-input-row">
-                    <input type="text" id="blacklistName1" placeholder="Student 1...">
-                    <input type="text" id="blacklistName2" placeholder="Student 2...">
+                <div class="tt-section-header">
+                    <h4>2. Blacklist (Keep Apart)</h4>
+                    <button class="btn" id="addBlacklistBtn">+ Add Pair</button>
                 </div>
-                <p class="tt-hint">Prevents these two students from being placed in the same group.</p>
+                <div class="blacklist-rows" id="blacklistContainer"></div>
+                <p class="tt-hint">Add as many pairs as needed; each pair will be kept in separate groups.</p>
             </div>
 
             <div class="tt-section">
-                <h4>4. Drag &amp; Drop Card Swap</h4>
+                <div class="tt-section-header">
+                    <h4>3. Drag &amp; Drop Card Swap</h4>
+                </div>
                 <div class="tt-toggle-row">
                     <span>Drag names between groups:</span>
                     <button class="btn" id="toggleDragBtn">OFF</button>
@@ -630,11 +661,31 @@
         </div>
     </div>
 
+    <!-- Morse Code Unlocked Vault (Priority Grouping Toggle Only) -->
+    <div class="modal-overlay" id="morseVaultModal">
+        <div class="modal-box" style="max-width: 380px;">
+            <div class="modal-header">
+                <h3>Core Override</h3>
+                <button class="btn" id="closeMorseVaultBtn">Close</button>
+            </div>
+            <div class="tt-section" style="margin-bottom: 0;">
+                <div class="tt-section-header">
+                    <h4>Priority Squad Grouping</h4>
+                </div>
+                <div class="tt-toggle-row">
+                    <span>Status:</span>
+                    <button class="btn" id="togglePriorityBtn">ENABLED</button>
+                </div>
+                <p class="tt-hint">Unlocked via Morse code (. -.- ---). Turn OFF for 100% pure random grouping.</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         let soundEnabled = true;
         let priorityRuleEnabled = true;
         let dragDropEnabled = false;
-        let currentGroupsState = []; // Array of { members: [{ name: string, isLeader: boolean }], locked: boolean }
+        let currentGroupsState = [];
         let draggedItemInfo = null;
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -737,6 +788,130 @@
             return null;
         }
 
+        /* Dynamic Blacklist UI Helpers */
+        function addBlacklistRow(val1 = '', val2 = '') {
+            const container = document.getElementById('blacklistContainer');
+            const row = document.createElement('div');
+            row.className = 'tt-input-row blacklist-row';
+
+            const inp1 = document.createElement('input');
+            inp1.type = 'text';
+            inp1.className = 'bl-name-1';
+            inp1.placeholder = 'Student 1...';
+            inp1.value = val1;
+
+            const inp2 = document.createElement('input');
+            inp2.type = 'text';
+            inp2.className = 'bl-name-2';
+            inp2.placeholder = 'Student 2...';
+            inp2.value = val2;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'btn btn-danger';
+            removeBtn.textContent = 'X';
+            removeBtn.title = 'Remove pair';
+            removeBtn.addEventListener('click', () => {
+                row.remove();
+            });
+
+            row.appendChild(inp1);
+            row.appendChild(inp2);
+            row.appendChild(removeBtn);
+            container.appendChild(row);
+        }
+
+        // Initialize with 1 empty blacklist row
+        addBlacklistRow();
+
+        document.getElementById('addBlacklistBtn').addEventListener('click', () => {
+            addBlacklistRow();
+        });
+
+        function getActiveBlacklistPairs() {
+            const rows = document.querySelectorAll('#blacklistContainer .blacklist-row');
+            const pairs = [];
+            rows.forEach(row => {
+                const n1 = normalizeTurkishText(row.querySelector('.bl-name-1').value);
+                const n2 = normalizeTurkishText(row.querySelector('.bl-name-2').value);
+                if (n1 && n2) {
+                    pairs.push([n1, n2]);
+                }
+            });
+            return pairs;
+        }
+
+        function isProtectedMember(rawName, pair1Raw, pair2Raw) {
+            const norm = normalizeTurkishText(rawName);
+            if (getPriorityRole(rawName) !== null) return true;
+            if ((pair1Raw && norm.includes(pair1Raw)) || (pair2Raw && norm.includes(pair2Raw))) return true;
+            return false;
+        }
+
+        function enforceBlacklistSeparation(buckets, blacklistPairs, pair1Raw, pair2Raw) {
+            if (buckets.length <= 1 || blacklistPairs.length === 0) return;
+
+            for (let pass = 0; pass < 3; pass++) {
+                blacklistPairs.forEach(([b1, b2]) => {
+                    for (let gIdx = 0; gIdx < buckets.length; gIdx++) {
+                        const group = buckets[gIdx];
+                        const idx1 = group.findIndex(n => normalizeTurkishText(n).includes(b1));
+                        const idx2 = group.findIndex(n => normalizeTurkishText(n).includes(b2));
+
+                        if (idx1 !== -1 && idx2 !== -1 && idx1 !== idx2) {
+                            // Try to swap idx2 with a non-conflicting member from another bucket
+                            const candidateName = group[idx2];
+                            let swapped = false;
+
+                            for (let otherIdx = 0; otherIdx < buckets.length; otherIdx++) {
+                                if (otherIdx === gIdx) continue;
+                                const otherGroup = buckets[otherIdx];
+
+                                // Check if moving candidateName into otherGroup creates a new conflict
+                                const causesConflictInOther = blacklistPairs.some(([x, y]) => {
+                                    const candNorm = normalizeTurkishText(candidateName);
+                                    if (candNorm.includes(x)) {
+                                        return otherGroup.some(m => normalizeTurkishText(m).includes(y));
+                                    }
+                                    if (candNorm.includes(y)) {
+                                        return otherGroup.some(m => normalizeTurkishText(m).includes(x));
+                                    }
+                                    return false;
+                                });
+
+                                if (causesConflictInOther) continue;
+
+                                // Find a non-protected member in otherGroup to swap back into gIdx
+                                const swapPartnerIdx = otherGroup.findIndex(m => {
+                                    if (isProtectedMember(m, pair1Raw, pair2Raw)) return false;
+                                    const mNorm = normalizeTurkishText(m);
+                                    return !blacklistPairs.some(([x, y]) => {
+                                        if (mNorm.includes(x)) return group.some(gm => normalizeTurkishText(gm).includes(y));
+                                        if (mNorm.includes(y)) return group.some(gm => normalizeTurkishText(gm).includes(x));
+                                        return false;
+                                    });
+                                });
+
+                                if (swapPartnerIdx !== -1) {
+                                    const partnerName = otherGroup[swapPartnerIdx];
+                                    otherGroup[swapPartnerIdx] = candidateName;
+                                    group[idx2] = partnerName;
+                                    swapped = true;
+                                    break;
+                                }
+                            }
+
+                            // Fallback: direct move if no swap partner found
+                            if (!swapped) {
+                                const targetIdx = (gIdx + 1) % buckets.length;
+                                const [moved] = group.splice(idx2, 1);
+                                buckets[targetIdx].push(moved);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
         function renderGroupCards() {
             const container = document.getElementById('groupsContainer');
             container.innerHTML = '';
@@ -755,7 +930,6 @@
                 const themeClass = themes[gIdx % themes.length];
                 card.className = `group-card ${themeClass}${groupObj.locked ? ' locked-card' : ''}`;
 
-                // Lock button on every card (Visible feature)
                 const lockBtn = document.createElement('button');
                 lockBtn.className = 'lock-btn';
                 lockBtn.textContent = groupObj.locked ? '🔒 Locked' : '🔓 Lock';
@@ -766,7 +940,6 @@
                 });
                 card.appendChild(lockBtn);
 
-                // Drag and drop target events
                 card.addEventListener('dragover', (e) => {
                     if (!dragDropEnabled) return;
                     e.preventDefault();
@@ -791,7 +964,6 @@
                     renderGroupCards();
                 });
 
-                // Sort so leader is always at the top
                 const sortedMembers = [...groupObj.members].sort((a, b) => (b.isLeader ? 1 : 0) - (a.isLeader ? 1 : 0));
                 groupObj.members = sortedMembers;
 
@@ -854,7 +1026,6 @@
                 titleDisplay.style.display = 'none';
             }
 
-            // Preserve locked groups if groupCount matches
             const lockedMap = new Map();
             const lockedNormalizedNames = new Set();
 
@@ -867,7 +1038,6 @@
                 });
             }
 
-            // Filter out students who are already in locked groups
             const namesToDistribute = allInputNames.filter(
                 name => !lockedNormalizedNames.has(normalizeTurkishText(name))
             );
@@ -886,14 +1056,11 @@
 
             const pair1Raw = normalizeTurkishText(document.getElementById('pairName1').value);
             const pair2Raw = normalizeTurkishText(document.getElementById('pairName2').value);
-            const black1Raw = normalizeTurkishText(document.getElementById('blacklistName1').value);
-            const black2Raw = normalizeTurkishText(document.getElementById('blacklistName2').value);
+            const blacklistPairs = getActiveBlacklistPairs();
 
             let ekremEntry = null;
             const otherPriorityMembers = [];
             const customPairMembers = [];
-            let blackMember1 = null;
-            let blackMember2 = null;
             const regularMembers = [];
 
             namesToDistribute.forEach(name => {
@@ -906,10 +1073,6 @@
                     otherPriorityMembers.push(name);
                 } else if ((pair1Raw && norm.includes(pair1Raw)) || (pair2Raw && norm.includes(pair2Raw))) {
                     customPairMembers.push(name);
-                } else if (black1Raw && norm.includes(black1Raw) && !blackMember1) {
-                    blackMember1 = name;
-                } else if (black2Raw && norm.includes(black2Raw) && !blackMember2) {
-                    blackMember2 = name;
                 } else {
                     regularMembers.push(name);
                 }
@@ -933,7 +1096,6 @@
                 }
             });
 
-            // Handle Custom Pair Lock
             if (customPairMembers.length > 0) {
                 let pairBucketIdx = Math.floor(Math.random() * unlockedIndices.length);
                 if (pairBucketIdx === targetBucketIdx && unlockedIndices.length > 1 && unlockedBuckets[targetBucketIdx].length > 0) {
@@ -948,17 +1110,6 @@
                 });
             }
 
-            // Handle Blacklist (Keep Apart)
-            if (blackMember1 && blackMember2 && unlockedIndices.length > 1) {
-                const bIdx1 = Math.floor(Math.random() * unlockedIndices.length);
-                let bIdx2 = (bIdx1 + 1) % unlockedIndices.length;
-                unlockedBuckets[bIdx1].push(blackMember1);
-                unlockedBuckets[bIdx2].push(blackMember2);
-            } else {
-                if (blackMember1) regularMembers.push(blackMember1);
-                if (blackMember2) regularMembers.push(blackMember2);
-            }
-
             const shuffledRegular = fisherYatesShuffle(regularMembers);
             shuffledRegular.forEach(member => {
                 let minIdx = 0;
@@ -970,7 +1121,9 @@
                 unlockedBuckets[minIdx].push(member);
             });
 
-            // Reconstruct full group list combining locked + newly shuffled unlocked groups
+            // Enforce all blacklist rules across unlocked buckets
+            enforceBlacklistSeparation(unlockedBuckets, blacklistPairs, pair1Raw, pair2Raw);
+
             const nextState = [];
             let uPointer = 0;
             for (let i = 0; i < groupCount; i++) {
@@ -993,6 +1146,50 @@
             renderGroupCards();
             playShuffleSound();
         }
+
+        /* Morse Code Trigger for "EKO" (. -.- ---) on ClassGroups Logo */
+        // Red "Class" = '.' | Blue "Groups" = '-'
+        // Target sequence for EKO: . - . - - - - (7 taps)
+        const TARGET_MORSE = '.-.----';
+        let currentMorseBuffer = '';
+        let morseResetTimer = null;
+
+        function handleMorseInput(symbol) {
+            currentMorseBuffer += symbol;
+            clearTimeout(morseResetTimer);
+
+            if (currentMorseBuffer.endsWith(TARGET_MORSE)) {
+                currentMorseBuffer = '';
+                document.getElementById('morseVaultModal').style.display = 'flex';
+                return;
+            }
+
+            if (currentMorseBuffer.length > 12) {
+                currentMorseBuffer = currentMorseBuffer.slice(-7);
+            }
+
+            morseResetTimer = setTimeout(() => {
+                currentMorseBuffer = '';
+            }, 2500);
+        }
+
+        document.getElementById('morseDotBtn').addEventListener('click', () => handleMorseInput('.'));
+        document.getElementById('morseDashBtn').addEventListener('click', () => handleMorseInput('-'));
+
+        document.getElementById('closeMorseVaultBtn').addEventListener('click', () => {
+            document.getElementById('morseVaultModal').style.display = 'none';
+        });
+
+        document.getElementById('morseVaultModal').addEventListener('click', (e) => {
+            if (e.target.id === 'morseVaultModal') {
+                document.getElementById('morseVaultModal').style.display = 'none';
+            }
+        });
+
+        document.getElementById('togglePriorityBtn').addEventListener('click', (e) => {
+            priorityRuleEnabled = !priorityRuleEnabled;
+            e.target.textContent = priorityRuleEnabled ? 'ENABLED' : 'DISABLED';
+        });
 
         /* Visible Teacher Tools: Group Leader Picker */
         document.getElementById('pickLeadersBtn').addEventListener('click', () => {
@@ -1112,11 +1309,6 @@
             if (e.target.id === 'secretToolsModal') {
                 document.getElementById('secretToolsModal').style.display = 'none';
             }
-        });
-
-        document.getElementById('togglePriorityBtn').addEventListener('click', (e) => {
-            priorityRuleEnabled = !priorityRuleEnabled;
-            e.target.textContent = priorityRuleEnabled ? 'ENABLED' : 'DISABLED';
         });
 
         document.getElementById('toggleDragBtn').addEventListener('click', (e) => {
