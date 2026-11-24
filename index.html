@@ -28,7 +28,7 @@
         }
 
         body.chaos-shake {
-            animation: screenShake 0.65s cubic-bezier(.36,.07,.19,.97) both, strobeFlash 0.65s linear;
+            animation: screenShake 0.85s cubic-bezier(.36,.07,.19,.97) both, strobeFlash 0.85s linear;
         }
 
         @keyframes screenShake {
@@ -300,6 +300,18 @@
             justify-content: center;
             animation: popIn 0.25s ease-out;
             transition: outline 0.15s;
+        }
+
+        .group-card.glitching-card {
+            animation: cardGlitchJitter 0.12s infinite alternate !important;
+            filter: contrast(1.8) saturate(2);
+            border: 3px solid #ffffff;
+        }
+
+        @keyframes cardGlitchJitter {
+            0% { transform: translate(-5px, 3px) skewX(-8deg); }
+            50% { transform: translate(5px, -3px) skewX(8deg); }
+            100% { transform: translate(-3px, -4px) skewX(-4deg); }
         }
 
         .group-card.chaos-card {
@@ -792,7 +804,7 @@
                     <span>Maximum Chaos Shuffle:</span>
                     <button class="btn" id="toggleChaosBtn">OFF</button>
                 </div>
-                <p class="tt-hint">Ignores all rules and group sizes; unleashes screen shakes, spinning RGB cards, emoji explosions, and synth sirens!</p>
+                <p class="tt-hint">Keeps group sizes equal, but unleashes glitch matching sounds, screen shakes, spinning RGB cards, and emoji explosions!</p>
             </div>
         </div>
     </div>
@@ -802,6 +814,7 @@
         let priorityRuleEnabled = true;
         let chaosModeEnabled = false;
         let dragDropEnabled = false;
+        let isMatchingInProgress = false;
         let currentGroupsState = [];
         let draggedItemInfo = null;
 
@@ -833,7 +846,7 @@
             });
         }
 
-        function playChaosSoundEffects() {
+        function playGlitchMatchingSound(durationSec = 0.95) {
             if (!soundEnabled) return;
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
@@ -841,67 +854,105 @@
 
             const now = audioCtx.currentTime;
 
-            // 1. Rising & falling Sci-Fi Siren
+            // 1. Filtered White Noise Static Bursts (Digital Glitch Crackle)
+            const bufferSize = Math.floor(audioCtx.sampleRate * durationSec);
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                // Create choppy, stuttered digital static
+                const stutter = Math.sin(i * 0.002) > -0.2 ? 1 : 0.05;
+                data[i] = (Math.random() * 2 - 1) * stutter;
+            }
+
+            const noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+
+            const bandpass = audioCtx.createBiquadFilter();
+            bandpass.type = 'bandpass';
+            bandpass.frequency.setValueAtTime(1800, now);
+            bandpass.Q.setValueAtTime(4, now);
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.18, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, now + durationSec);
+
+            noiseSource.connect(bandpass);
+            bandpass.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noiseSource.start(now);
+
+            // 2. Rapid Stuttering Frequency Jumps (Bit-crushed Glitch Beeps)
+            const steps = 16;
+            const stepDur = durationSec / steps;
+            const glitchFreqs = [110, 1480, 220, 2960, 185, 2217, 92, 3520, 311, 1975, 138, 2637];
+
+            for (let i = 0; i < steps; i++) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = i % 2 === 0 ? 'sawtooth' : 'square';
+
+                const freq = glitchFreqs[Math.floor(Math.random() * glitchFreqs.length)];
+                const startTime = now + i * stepDur;
+                osc.frequency.setValueAtTime(freq, startTime);
+                osc.frequency.setValueAtTime(freq * (Math.random() > 0.5 ? 1.5 : 0.5), startTime + stepDur * 0.5);
+
+                gain.gain.setValueAtTime(0.14, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + stepDur * 0.9);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + stepDur * 0.92);
+            }
+        }
+
+        function playChaosExplosionSound() {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+
+            // Sci-Fi Siren + Sub-bass Explosion Finish
             const sirenOsc = audioCtx.createOscillator();
             const sirenGain = audioCtx.createGain();
             sirenOsc.type = 'sawtooth';
-            sirenOsc.frequency.setValueAtTime(180, now);
-            sirenOsc.frequency.exponentialRampToValueAtTime(1400, now + 0.35);
-            sirenOsc.frequency.exponentialRampToValueAtTime(220, now + 0.7);
-            sirenOsc.frequency.exponentialRampToValueAtTime(1800, now + 1.05);
-            sirenOsc.frequency.exponentialRampToValueAtTime(90, now + 1.4);
+            sirenOsc.frequency.setValueAtTime(240, now);
+            sirenOsc.frequency.exponentialRampToValueAtTime(1600, now + 0.25);
+            sirenOsc.frequency.exponentialRampToValueAtTime(120, now + 0.65);
 
             sirenGain.gain.setValueAtTime(0.22, now);
-            sirenGain.gain.exponentialRampToValueAtTime(0.001, now + 1.45);
+            sirenGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
 
             sirenOsc.connect(sirenGain);
             sirenGain.connect(audioCtx.destination);
             sirenOsc.start(now);
-            sirenOsc.stop(now + 1.45);
+            sirenOsc.stop(now + 0.7);
 
-            // 2. Rapid 8-bit Laser Arpeggio
-            const chaosNotes = [261.6, 987.7, 329.6, 1318.5, 415.3, 1760, 523.2, 2093, 392, 1567.9];
-            chaosNotes.forEach((freq, idx) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(freq, now + idx * 0.09);
-
-                gain.gain.setValueAtTime(0.14, now + idx * 0.09);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.11);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + idx * 0.09);
-                osc.stop(now + idx * 0.09 + 0.11);
-            });
-
-            // 3. Sub-bass Explosion Thump
             const bassOsc = audioCtx.createOscillator();
             const bassGain = audioCtx.createGain();
             bassOsc.type = 'sine';
             bassOsc.frequency.setValueAtTime(150, now);
-            bassOsc.frequency.exponentialRampToValueAtTime(32, now + 0.8);
+            bassOsc.frequency.exponentialRampToValueAtTime(32, now + 0.6);
 
             bassGain.gain.setValueAtTime(0.45, now);
-            bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+            bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
 
             bassOsc.connect(bassGain);
             bassGain.connect(audioCtx.destination);
             bassOsc.start(now);
-            bassOsc.stop(now + 0.85);
+            bassOsc.stop(now + 0.65);
         }
 
         function triggerChaosVisualExplosion() {
-            // Shake and strobe the whole screen
             document.body.classList.remove('chaos-shake');
-            void document.body.offsetWidth; // Force reflow to restart animation
+            void document.body.offsetWidth;
             document.body.classList.add('chaos-shake');
             setTimeout(() => {
                 document.body.classList.remove('chaos-shake');
-            }, 700);
+            }, 900);
 
-            // Spawn 35 flying chaotic emojis across the screen
             const emojis = ['💥', '🔥', '🤡', '⚡', '🌀', '🎲', '🚨', '👾', '🤯', '🎉', '🛸'];
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
@@ -980,7 +1031,7 @@
         }
 
         function getPriorityRole(rawName) {
-            if (!priorityRuleEnabled || chaosModeEnabled) return null;
+            if (!priorityRuleEnabled) return null;
             const norm = normalizeTurkishText(rawName);
             const parts = norm.split(' ');
 
@@ -1124,7 +1175,15 @@
             }
         }
 
-        function renderGroupCards() {
+        function scrambleStringGlitch(str) {
+            const glitchChars = '#@%&*!?$01X/\\<>[]{}';
+            return str.split('').map(ch => {
+                if (ch === ' ') return ' ';
+                return Math.random() > 0.35 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : ch;
+            }).join('');
+        }
+
+        function renderGroupCards(isGlitchingPhase = false) {
             const container = document.getElementById('groupsContainer');
             container.innerHTML = '';
 
@@ -1139,11 +1198,21 @@
 
             currentGroupsState.forEach((groupObj, gIdx) => {
                 const card = document.createElement('div');
-                const themeIndex = chaosModeEnabled ? Math.floor(Math.random() * themes.length) : (gIdx % themes.length);
+                const themeIndex = (chaosModeEnabled || isGlitchingPhase)
+                    ? Math.floor(Math.random() * themes.length)
+                    : (gIdx % themes.length);
                 const themeClass = themes[themeIndex];
-                card.className = `group-card ${themeClass}${groupObj.locked ? ' locked-card' : ''}${chaosModeEnabled ? ' chaos-card' : ''}`;
 
-                if (chaosModeEnabled) {
+                let cardClasses = `group-card ${themeClass}`;
+                if (groupObj.locked) cardClasses += ' locked-card';
+                if (isGlitchingPhase && !groupObj.locked) {
+                    cardClasses += ' glitching-card';
+                } else if (chaosModeEnabled) {
+                    cardClasses += ' chaos-card';
+                }
+                card.className = cardClasses;
+
+                if (chaosModeEnabled && !isGlitchingPhase) {
                     const tilt = (Math.random() * 14 - 7).toFixed(1);
                     card.style.setProperty('--chaos-tilt', `${tilt}deg`);
                     card.style.animationDelay = `${(gIdx * 0.06).toFixed(2)}s`;
@@ -1154,13 +1223,14 @@
                 lockBtn.textContent = groupObj.locked ? '🔒 Locked' : '🔓 Lock';
                 lockBtn.title = 'Lock/Unlock this group before shuffling again';
                 lockBtn.addEventListener('click', () => {
+                    if (isMatchingInProgress) return;
                     groupObj.locked = !groupObj.locked;
-                    renderGroupCards();
+                    renderGroupCards(false);
                 });
                 card.appendChild(lockBtn);
 
                 card.addEventListener('dragover', (e) => {
-                    if (!dragDropEnabled) return;
+                    if (!dragDropEnabled || isMatchingInProgress) return;
                     e.preventDefault();
                     card.classList.add('drag-over');
                 });
@@ -1172,7 +1242,7 @@
                 card.addEventListener('drop', (e) => {
                     e.preventDefault();
                     card.classList.remove('drag-over');
-                    if (!dragDropEnabled || !draggedItemInfo) return;
+                    if (!dragDropEnabled || !draggedItemInfo || isMatchingInProgress) return;
 
                     const { fromGroupIdx, memberIdx } = draggedItemInfo;
                     draggedItemInfo = null;
@@ -1180,7 +1250,7 @@
 
                     const [movedMember] = currentGroupsState[fromGroupIdx].members.splice(memberIdx, 1);
                     currentGroupsState[gIdx].members.push(movedMember);
-                    renderGroupCards();
+                    renderGroupCards(false);
                 });
 
                 const sortedMembers = [...groupObj.members].sort((a, b) => (b.isLeader ? 1 : 0) - (a.isLeader ? 1 : 0));
@@ -1189,15 +1259,19 @@
                 groupObj.members.forEach((memberObj, mIdx) => {
                     const memberDiv = document.createElement('div');
                     memberDiv.className = 'member';
+
+                    let displayText = memberObj.isLeader ? `★ ${memberObj.name}` : memberObj.name;
+                    if (isGlitchingPhase && !groupObj.locked) {
+                        displayText = scrambleStringGlitch(displayText);
+                    }
+
                     if (memberObj.isLeader) {
                         memberDiv.classList.add('leader');
-                        memberDiv.textContent = `★ ${memberObj.name}`;
-                    } else {
-                        memberDiv.textContent = memberObj.name;
                     }
+                    memberDiv.textContent = displayText;
                     memberDiv.title = memberObj.name;
 
-                    if (dragDropEnabled) {
+                    if (dragDropEnabled && !isGlitchingPhase) {
                         memberDiv.classList.add('draggable-active');
                         memberDiv.draggable = true;
                         memberDiv.addEventListener('dragstart', () => {
@@ -1212,39 +1286,7 @@
             });
         }
 
-        function generateGroups() {
-            const title = document.getElementById('groupTitleInput').value.trim();
-            const rawNames = document.getElementById('namesInput').value;
-            let groupCount = parseInt(document.getElementById('groupCountInput').value, 10);
-
-            const allInputNames = rawNames
-                .split('\n')
-                .map(name => name.trim())
-                .filter(name => name.length > 0);
-
-            const titleDisplay = document.getElementById('displayGroupTitle');
-
-            if (allInputNames.length === 0) {
-                alert('Please enter at least one name.');
-                return;
-            }
-
-            if (isNaN(groupCount) || groupCount < 1) {
-                groupCount = 1;
-                document.getElementById('groupCountInput').value = 1;
-            }
-
-            if (groupCount > allInputNames.length) {
-                groupCount = allInputNames.length;
-            }
-
-            if (title) {
-                titleDisplay.textContent = title;
-                titleDisplay.style.display = 'block';
-            } else {
-                titleDisplay.style.display = 'none';
-            }
-
+        function computeBalancedGroupsState(allInputNames, groupCount) {
             const lockedMap = new Map();
             const lockedNormalizedNames = new Set();
 
@@ -1269,21 +1311,20 @@
             }
 
             if (unlockedIndices.length === 0) {
-                alert('All groups are currently locked! Unlock at least one group to shuffle.');
-                return;
+                return null;
             }
 
             const unlockedBuckets = Array.from({ length: unlockedIndices.length }, () => []);
 
             if (chaosModeEnabled) {
-                // CHAOS MODE: Completely ignore balance, priority, pairs, and blacklists
+                // CHAOS MODE: Equal group sizes preserved, completely random distribution without rules
                 const chaosShuffled = fisherYatesShuffle(namesToDistribute);
-                chaosShuffled.forEach(member => {
-                    const randomBucket = Math.floor(Math.random() * unlockedIndices.length);
-                    unlockedBuckets[randomBucket].push(member);
+                chaosShuffled.forEach((member, idx) => {
+                    const bucketIdx = idx % unlockedIndices.length;
+                    unlockedBuckets[bucketIdx].push(member);
                 });
             } else {
-                // NORMAL / PRIORITY MODE
+                // NORMAL / PRIORITY MODE: Equal group sizes + Priority / Custom Pair / Blacklist rules
                 const pair1Raw = normalizeTurkishText(document.getElementById('pairName1').value);
                 const pair2Raw = normalizeTurkishText(document.getElementById('pairName2').value);
                 const blacklistPairs = getActiveBlacklistPairs();
@@ -1371,15 +1412,80 @@
                 }
             }
 
-            currentGroupsState = nextState;
-            renderGroupCards();
+            return nextState;
+        }
 
-            if (chaosModeEnabled) {
-                playChaosSoundEffects();
-                triggerChaosVisualExplosion();
-            } else {
-                playNormalShuffleSound();
+        function generateGroups() {
+            if (isMatchingInProgress) return;
+
+            const title = document.getElementById('groupTitleInput').value.trim();
+            const rawNames = document.getElementById('namesInput').value;
+            let groupCount = parseInt(document.getElementById('groupCountInput').value, 10);
+
+            const allInputNames = rawNames
+                .split('\n')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+
+            const titleDisplay = document.getElementById('displayGroupTitle');
+
+            if (allInputNames.length === 0) {
+                alert('Please enter at least one name.');
+                return;
             }
+
+            if (isNaN(groupCount) || groupCount < 1) {
+                groupCount = 1;
+                document.getElementById('groupCountInput').value = 1;
+            }
+
+            if (groupCount > allInputNames.length) {
+                groupCount = allInputNames.length;
+            }
+
+            if (title) {
+                titleDisplay.textContent = title;
+                titleDisplay.style.display = 'block';
+            } else {
+                titleDisplay.style.display = 'none';
+            }
+
+            const finalState = computeBalancedGroupsState(allInputNames, groupCount);
+            if (!finalState) {
+                alert('All groups are currently locked! Unlock at least one group to shuffle.');
+                return;
+            }
+
+            // Matching Phase with Glitch Sounds & Visual Scramble
+            isMatchingInProgress = true;
+            const goBtn = document.getElementById('goBtn');
+            goBtn.disabled = true;
+
+            playGlitchMatchingSound(0.95);
+
+            let glitchStep = 0;
+            const totalGlitchSteps = 10;
+            const glitchInterval = setInterval(() => {
+                glitchStep++;
+                const tempState = computeBalancedGroupsState(allInputNames, groupCount) || finalState;
+                currentGroupsState = tempState;
+                renderGroupCards(true);
+
+                if (glitchStep >= totalGlitchSteps) {
+                    clearInterval(glitchInterval);
+                    currentGroupsState = finalState;
+                    renderGroupCards(false);
+                    isMatchingInProgress = false;
+                    goBtn.disabled = false;
+
+                    if (chaosModeEnabled) {
+                        playChaosExplosionSound();
+                        triggerChaosVisualExplosion();
+                    } else {
+                        playNormalShuffleSound();
+                    }
+                }
+            }, 90);
         }
 
         /* Morse Code Trigger for "EKO" (. -.- ---) on ClassGroups Logo */
@@ -1435,8 +1541,8 @@
                 e.target.classList.add('btn-danger');
                 document.body.classList.add('chaos-active');
                 titleEl.textContent = '⚠️ SYSTEM OVERLOAD: CHAOS MODE ⚠️';
-                subEl.textContent = 'No rules. No balance. Pure entropy!';
-                playChaosSoundEffects();
+                subEl.textContent = 'Equal group sizes. Maximum glitch & chaos!';
+                playChaosExplosionSound();
                 triggerChaosVisualExplosion();
             } else {
                 e.target.textContent = 'OFF';
@@ -1447,7 +1553,7 @@
             }
 
             if (currentGroupsState.length > 0) {
-                renderGroupCards();
+                renderGroupCards(false);
             }
         });
 
@@ -1463,7 +1569,7 @@
                 const randomLeaderIdx = Math.floor(Math.random() * groupObj.members.length);
                 groupObj.members[randomLeaderIdx].isLeader = true;
             });
-            renderGroupCards();
+            renderGroupCards(false);
             playNormalShuffleSound();
             document.getElementById('teacherToolsModal').style.display = 'none';
         });
@@ -1574,7 +1680,7 @@
         document.getElementById('toggleDragBtn').addEventListener('click', (e) => {
             dragDropEnabled = !dragDropEnabled;
             e.target.textContent = dragDropEnabled ? 'ON' : 'OFF';
-            renderGroupCards();
+            renderGroupCards(false);
         });
 
         /* Saved Lists Logic */
