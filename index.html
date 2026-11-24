@@ -60,6 +60,31 @@
             margin-top: 3px;
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .timer-badge {
+            display: none;
+            background-color: #111111;
+            color: #39ff14;
+            border: 2px solid #ffffff;
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            box-shadow: 0 0 14px rgba(57, 255, 20, 0.7);
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-badge.warning {
+            color: #ff2a2a;
+            box-shadow: 0 0 14px rgba(255, 42, 42, 0.9);
+        }
+
         .logo-placeholder {
             border: 2px dashed rgba(255, 255, 255, 0.7);
             padding: 8px 16px;
@@ -78,7 +103,7 @@
         }
 
         .sidebar {
-            width: 240px;
+            width: 245px;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
@@ -110,7 +135,7 @@
         }
 
         textarea {
-            height: 230px;
+            height: 225px;
             resize: vertical;
             line-height: 1.4;
         }
@@ -151,6 +176,16 @@
             font-size: 14px;
         }
 
+        .btn-teacher {
+            background: linear-gradient(to bottom, #ffe600 0%, #ffb700 100%);
+            border-color: #996b00;
+            color: #111111;
+        }
+
+        .btn-teacher:hover {
+            background: linear-gradient(to bottom, #fff04d 0%, #ffc800 100%);
+        }
+
         .btn-danger {
             background: linear-gradient(to bottom, #ff5e5e 0%, #d90000 100%);
             color: #ffffff;
@@ -183,24 +218,54 @@
 
         .groups-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
             gap: 28px;
             padding: 10px;
         }
 
         .group-card {
+            position: relative;
             border-radius: 4px;
-            padding: 14px 16px;
+            padding: 26px 16px 16px 16px;
             color: #000000;
             font-weight: bold;
             font-size: 18px;
             line-height: 1.45;
             text-align: center;
-            min-height: 135px;
+            min-height: 145px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             animation: popIn 0.25s ease-out;
+            transition: outline 0.15s;
+        }
+
+        .group-card.locked-card {
+            outline: 4px solid #ffffff;
+        }
+
+        .group-card.drag-over {
+            outline: 4px dashed #000000;
+            transform: scale(1.02);
+        }
+
+        .lock-btn {
+            position: absolute;
+            top: 5px;
+            right: 6px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(0, 0, 0, 0.35);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #111111;
+            line-height: 1.2;
+        }
+
+        .lock-btn:hover {
+            background: #ffffff;
         }
 
         @keyframes popIn {
@@ -213,6 +278,27 @@
             overflow: hidden;
             text-overflow: ellipsis;
             text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        .group-card .member.leader {
+            font-weight: 900;
+            font-size: 20px;
+            text-decoration: underline;
+            background: rgba(255, 255, 255, 0.45);
+            margin-bottom: 4px;
+            padding: 3px 6px;
+        }
+
+        .group-card .member.draggable-active {
+            cursor: grab;
+            border: 1px dashed rgba(0, 0, 0, 0.45);
+            margin: 2px 0;
+        }
+
+        .group-card .member.draggable-active:active {
+            cursor: grabbing;
         }
 
         .theme-green {
@@ -337,7 +423,7 @@
             padding: 20px 0;
         }
 
-        /* Teacher Tools Specific Styles */
+        /* Panel Sections */
         .tt-section {
             background: rgba(0, 0, 0, 0.28);
             border: 1px solid rgba(255, 255, 255, 0.25);
@@ -366,6 +452,7 @@
             display: flex;
             gap: 8px;
             margin-top: 6px;
+            align-items: center;
         }
 
         .tt-hint {
@@ -392,13 +479,14 @@
                 background-color: #ffffff;
                 color: #000000;
             }
-            .sidebar, .top-header, .modal-overlay {
+            .sidebar, .top-header, .modal-overlay, .lock-btn {
                 display: none !important;
             }
             .group-card {
                 border: 2px solid #000000;
                 box-shadow: none !important;
                 page-break-inside: avoid;
+                padding-top: 14px;
             }
         }
     </style>
@@ -411,7 +499,10 @@
             <h1>Random Group Generator</h1>
             <p>Enter names, choose the number of groups, and shuffle!</p>
         </div>
-        <div class="logo-placeholder" id="secretTrigger">EkoByte &amp; Gemini</div>
+        <div class="header-right">
+            <div class="timer-badge" id="timerDisplay">05:00</div>
+            <div class="logo-placeholder" id="secretTrigger">EkoByte &amp; Gemini</div>
+        </div>
     </header>
 
     <main class="main-container">
@@ -438,6 +529,7 @@
                 <button class="btn" id="saveBtn">Save</button>
                 <button class="btn" id="loadBtn">Load</button>
                 <button class="btn" id="savesBtn">Saves</button>
+                <button class="btn btn-teacher" id="teacherToolsBtn">Teacher Tools</button>
                 <button class="btn" id="newBtn">New</button>
                 <button class="btn" id="soundBtn">Sounds: ON</button>
                 <button class="btn" id="printBtn">Print</button>
@@ -461,7 +553,7 @@
         </div>
     </div>
 
-    <!-- Secret Teacher Tools Modal -->
+    <!-- Visible Teacher Tools Modal (Timer & Group Leader) -->
     <div class="modal-overlay" id="teacherToolsModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -470,7 +562,38 @@
             </div>
 
             <div class="tt-section">
-                <h4>1. Priority Grouping Rule</h4>
+                <h4>1. Group Leader Picker</h4>
+                <div class="tt-toggle-row">
+                    <span>Assign a random leader per group:</span>
+                    <button class="btn btn-teacher" id="pickLeadersBtn">Pick Leaders</button>
+                </div>
+                <p class="tt-hint">Places the selected leader at the top of each group in bold.</p>
+            </div>
+
+            <div class="tt-section">
+                <h4>2. Activity Countdown Timer</h4>
+                <div class="tt-input-row">
+                    <input type="number" id="timerMinutesInput" value="5" min="1" max="120" style="width: 85px;">
+                    <span style="font-size: 13px; font-weight: bold;">min</span>
+                    <button class="btn" id="startTimerBtn">Start</button>
+                    <button class="btn" id="pauseTimerBtn">Pause</button>
+                    <button class="btn btn-danger" id="resetTimerBtn">Reset</button>
+                </div>
+                <p class="tt-hint">Displays a live countdown clock at the top right of the screen.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secret Dev Tools Modal (Blacklist, Drag & Drop, Priority Override) -->
+    <div class="modal-overlay" id="secretToolsModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Hidden Dev Tools</h3>
+                <button class="btn" id="closeSecretToolsBtn">Close</button>
+            </div>
+
+            <div class="tt-section">
+                <h4>1. Priority Squad Rule</h4>
                 <div class="tt-toggle-row">
                     <span>Built-in Squad Grouping:</span>
                     <button class="btn" id="togglePriorityBtn">ENABLED</button>
@@ -479,7 +602,7 @@
             </div>
 
             <div class="tt-section">
-                <h4>2. Custom Pair Lock</h4>
+                <h4>2. Custom Pair Lock (Keep Together)</h4>
                 <div class="tt-input-row">
                     <input type="text" id="pairName1" placeholder="First name...">
                     <input type="text" id="pairName2" placeholder="Second name...">
@@ -488,19 +611,21 @@
             </div>
 
             <div class="tt-section">
-                <h4>3. Live Group Editor</h4>
+                <h4>3. Blacklist (Keep Apart)</h4>
                 <div class="tt-input-row">
-                    <select id="moveMemberSelect">
-                        <option value="">Generate groups first...</option>
-                    </select>
-                    <select id="targetGroupSelect">
-                        <option value="">Target group...</option>
-                    </select>
+                    <input type="text" id="blacklistName1" placeholder="Student 1...">
+                    <input type="text" id="blacklistName2" placeholder="Student 2...">
                 </div>
-                <div style="margin-top: 8px; text-align: right;">
-                    <button class="btn" id="moveMemberBtn">Move Student</button>
+                <p class="tt-hint">Prevents these two students from being placed in the same group.</p>
+            </div>
+
+            <div class="tt-section">
+                <h4>4. Drag &amp; Drop Card Swap</h4>
+                <div class="tt-toggle-row">
+                    <span>Drag names between groups:</span>
+                    <button class="btn" id="toggleDragBtn">OFF</button>
                 </div>
-                <p class="tt-hint">Silently moves a student to another group without re-shuffling.</p>
+                <p class="tt-hint">When ON, drag any student name directly onto another group card.</p>
             </div>
         </div>
     </div>
@@ -508,7 +633,10 @@
     <script>
         let soundEnabled = true;
         let priorityRuleEnabled = true;
-        let currentGroupsState = [];
+        let dragDropEnabled = false;
+        let currentGroupsState = []; // Array of { members: [{ name: string, isLeader: boolean }], locked: boolean }
+        let draggedItemInfo = null;
+
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const STORAGE_KEY = 'savedGroupGeneratorLists';
 
@@ -534,6 +662,26 @@
 
                 osc.start(now + index * 0.05);
                 osc.stop(now + index * 0.05 + 0.15);
+            });
+        }
+
+        function playAlarmSound() {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const now = audioCtx.currentTime;
+            [880, 659.25, 880, 1046.5].forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + i * 0.18);
+                gain.gain.setValueAtTime(0.2, now + i * 0.18);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.18 + 0.16);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + i * 0.18);
+                osc.stop(now + i * 0.18 + 0.16);
             });
         }
 
@@ -589,7 +737,7 @@
             return null;
         }
 
-        function renderGroupCards(groupsArray, shuffleOrder = true) {
+        function renderGroupCards() {
             const container = document.getElementById('groupsContainer');
             container.innerHTML = '';
 
@@ -602,27 +750,75 @@
                 'theme-orange'
             ];
 
-            currentGroupsState = groupsArray.map(groupMembers => {
-                return shuffleOrder ? fisherYatesShuffle(groupMembers) : [...groupMembers];
-            });
-
-            currentGroupsState.forEach((groupMembers, idx) => {
+            currentGroupsState.forEach((groupObj, gIdx) => {
                 const card = document.createElement('div');
-                const themeClass = themes[idx % themes.length];
-                card.className = `group-card ${themeClass}`;
+                const themeClass = themes[gIdx % themes.length];
+                card.className = `group-card ${themeClass}${groupObj.locked ? ' locked-card' : ''}`;
 
-                groupMembers.forEach(member => {
+                // Lock button on every card (Visible feature)
+                const lockBtn = document.createElement('button');
+                lockBtn.className = 'lock-btn';
+                lockBtn.textContent = groupObj.locked ? '🔒 Locked' : '🔓 Lock';
+                lockBtn.title = 'Lock/Unlock this group before shuffling again';
+                lockBtn.addEventListener('click', () => {
+                    groupObj.locked = !groupObj.locked;
+                    renderGroupCards();
+                });
+                card.appendChild(lockBtn);
+
+                // Drag and drop target events
+                card.addEventListener('dragover', (e) => {
+                    if (!dragDropEnabled) return;
+                    e.preventDefault();
+                    card.classList.add('drag-over');
+                });
+
+                card.addEventListener('dragleave', () => {
+                    card.classList.remove('drag-over');
+                });
+
+                card.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    card.classList.remove('drag-over');
+                    if (!dragDropEnabled || !draggedItemInfo) return;
+
+                    const { fromGroupIdx, memberIdx } = draggedItemInfo;
+                    draggedItemInfo = null;
+                    if (fromGroupIdx === gIdx) return;
+
+                    const [movedMember] = currentGroupsState[fromGroupIdx].members.splice(memberIdx, 1);
+                    currentGroupsState[gIdx].members.push(movedMember);
+                    renderGroupCards();
+                });
+
+                // Sort so leader is always at the top
+                const sortedMembers = [...groupObj.members].sort((a, b) => (b.isLeader ? 1 : 0) - (a.isLeader ? 1 : 0));
+                groupObj.members = sortedMembers;
+
+                groupObj.members.forEach((memberObj, mIdx) => {
                     const memberDiv = document.createElement('div');
                     memberDiv.className = 'member';
-                    memberDiv.textContent = member;
-                    memberDiv.title = member;
+                    if (memberObj.isLeader) {
+                        memberDiv.classList.add('leader');
+                        memberDiv.textContent = `★ ${memberObj.name}`;
+                    } else {
+                        memberDiv.textContent = memberObj.name;
+                    }
+                    memberDiv.title = memberObj.name;
+
+                    if (dragDropEnabled) {
+                        memberDiv.classList.add('draggable-active');
+                        memberDiv.draggable = true;
+                        memberDiv.addEventListener('dragstart', () => {
+                            draggedItemInfo = { fromGroupIdx: gIdx, memberIdx: mIdx };
+                        });
+                    }
+
                     card.appendChild(memberDiv);
                 });
 
                 container.appendChild(card);
             });
-
-            refreshLiveEditorDropdowns();
         }
 
         function generateGroups() {
@@ -630,14 +826,14 @@
             const rawNames = document.getElementById('namesInput').value;
             let groupCount = parseInt(document.getElementById('groupCountInput').value, 10);
 
-            const names = rawNames
+            const allInputNames = rawNames
                 .split('\n')
                 .map(name => name.trim())
                 .filter(name => name.length > 0);
 
             const titleDisplay = document.getElementById('displayGroupTitle');
 
-            if (names.length === 0) {
+            if (allInputNames.length === 0) {
                 alert('Please enter at least one name.');
                 return;
             }
@@ -647,8 +843,8 @@
                 document.getElementById('groupCountInput').value = 1;
             }
 
-            if (groupCount > names.length) {
-                groupCount = names.length;
+            if (groupCount > allInputNames.length) {
+                groupCount = allInputNames.length;
             }
 
             if (title) {
@@ -658,15 +854,49 @@
                 titleDisplay.style.display = 'none';
             }
 
+            // Preserve locked groups if groupCount matches
+            const lockedMap = new Map();
+            const lockedNormalizedNames = new Set();
+
+            if (currentGroupsState.length === groupCount) {
+                currentGroupsState.forEach((grp, idx) => {
+                    if (grp.locked) {
+                        lockedMap.set(idx, grp.members.map(m => ({ ...m })));
+                        grp.members.forEach(m => lockedNormalizedNames.add(normalizeTurkishText(m.name)));
+                    }
+                });
+            }
+
+            // Filter out students who are already in locked groups
+            const namesToDistribute = allInputNames.filter(
+                name => !lockedNormalizedNames.has(normalizeTurkishText(name))
+            );
+
+            const unlockedIndices = [];
+            for (let i = 0; i < groupCount; i++) {
+                if (!lockedMap.has(i)) {
+                    unlockedIndices.push(i);
+                }
+            }
+
+            if (unlockedIndices.length === 0) {
+                alert('All groups are currently locked! Unlock at least one group to shuffle.');
+                return;
+            }
+
             const pair1Raw = normalizeTurkishText(document.getElementById('pairName1').value);
             const pair2Raw = normalizeTurkishText(document.getElementById('pairName2').value);
+            const black1Raw = normalizeTurkishText(document.getElementById('blacklistName1').value);
+            const black2Raw = normalizeTurkishText(document.getElementById('blacklistName2').value);
 
             let ekremEntry = null;
             const otherPriorityMembers = [];
             const customPairMembers = [];
+            let blackMember1 = null;
+            let blackMember2 = null;
             const regularMembers = [];
 
-            names.forEach(name => {
+            namesToDistribute.forEach(name => {
                 const norm = normalizeTurkishText(name);
                 const role = getPriorityRole(name);
 
@@ -676,113 +906,165 @@
                     otherPriorityMembers.push(name);
                 } else if ((pair1Raw && norm.includes(pair1Raw)) || (pair2Raw && norm.includes(pair2Raw))) {
                     customPairMembers.push(name);
+                } else if (black1Raw && norm.includes(black1Raw) && !blackMember1) {
+                    blackMember1 = name;
+                } else if (black2Raw && norm.includes(black2Raw) && !blackMember2) {
+                    blackMember2 = name;
                 } else {
                     regularMembers.push(name);
                 }
             });
 
-            const maxGroupCapacity = Math.ceil(names.length / groupCount);
-            const groups = Array.from({ length: groupCount }, () => []);
-            const targetGroupIndex = Math.floor(Math.random() * groupCount);
+            const maxCapacityPerUnlocked = Math.ceil(namesToDistribute.length / unlockedIndices.length);
+            const unlockedBuckets = Array.from({ length: unlockedIndices.length }, () => []);
+            const targetBucketIdx = Math.floor(Math.random() * unlockedIndices.length);
 
             const shuffledOthers = fisherYatesShuffle(otherPriorityMembers);
 
             if (ekremEntry) {
-                groups[targetGroupIndex].push(ekremEntry);
+                unlockedBuckets[targetBucketIdx].push(ekremEntry);
             }
 
             shuffledOthers.forEach(member => {
-                if (groups[targetGroupIndex].length < maxGroupCapacity) {
-                    groups[targetGroupIndex].push(member);
+                if (unlockedBuckets[targetBucketIdx].length < maxCapacityPerUnlocked) {
+                    unlockedBuckets[targetBucketIdx].push(member);
                 } else {
                     regularMembers.push(member);
                 }
             });
 
+            // Handle Custom Pair Lock
             if (customPairMembers.length > 0) {
-                let pairTargetIdx = Math.floor(Math.random() * groupCount);
-                if (pairTargetIdx === targetGroupIndex && groupCount > 1 && groups[targetGroupIndex].length > 0) {
-                    pairTargetIdx = (targetGroupIndex + 1) % groupCount;
+                let pairBucketIdx = Math.floor(Math.random() * unlockedIndices.length);
+                if (pairBucketIdx === targetBucketIdx && unlockedIndices.length > 1 && unlockedBuckets[targetBucketIdx].length > 0) {
+                    pairBucketIdx = (targetBucketIdx + 1) % unlockedIndices.length;
                 }
                 customPairMembers.forEach(member => {
-                    if (groups[pairTargetIdx].length < maxGroupCapacity) {
-                        groups[pairTargetIdx].push(member);
+                    if (unlockedBuckets[pairBucketIdx].length < maxCapacityPerUnlocked) {
+                        unlockedBuckets[pairBucketIdx].push(member);
                     } else {
                         regularMembers.push(member);
                     }
                 });
             }
 
+            // Handle Blacklist (Keep Apart)
+            if (blackMember1 && blackMember2 && unlockedIndices.length > 1) {
+                const bIdx1 = Math.floor(Math.random() * unlockedIndices.length);
+                let bIdx2 = (bIdx1 + 1) % unlockedIndices.length;
+                unlockedBuckets[bIdx1].push(blackMember1);
+                unlockedBuckets[bIdx2].push(blackMember2);
+            } else {
+                if (blackMember1) regularMembers.push(blackMember1);
+                if (blackMember2) regularMembers.push(blackMember2);
+            }
+
             const shuffledRegular = fisherYatesShuffle(regularMembers);
             shuffledRegular.forEach(member => {
-                let minGroupIdx = 0;
-                for (let i = 1; i < groupCount; i++) {
-                    if (groups[i].length < groups[minGroupIdx].length) {
-                        minGroupIdx = i;
+                let minIdx = 0;
+                for (let i = 1; i < unlockedBuckets.length; i++) {
+                    if (unlockedBuckets[i].length < unlockedBuckets[minIdx].length) {
+                        minIdx = i;
                     }
                 }
-                groups[minGroupIdx].push(member);
+                unlockedBuckets[minIdx].push(member);
             });
 
-            renderGroupCards(groups, true);
+            // Reconstruct full group list combining locked + newly shuffled unlocked groups
+            const nextState = [];
+            let uPointer = 0;
+            for (let i = 0; i < groupCount; i++) {
+                if (lockedMap.has(i)) {
+                    nextState.push({
+                        members: lockedMap.get(i),
+                        locked: true
+                    });
+                } else {
+                    const shuffledNames = fisherYatesShuffle(unlockedBuckets[uPointer]);
+                    nextState.push({
+                        members: shuffledNames.map(n => ({ name: n, isLeader: false })),
+                        locked: false
+                    });
+                    uPointer++;
+                }
+            }
+
+            currentGroupsState = nextState;
+            renderGroupCards();
             playShuffleSound();
         }
 
-        /* Teacher Tools Logic */
-        function openTeacherTools() {
-            refreshLiveEditorDropdowns();
-            document.getElementById('teacherToolsModal').style.display = 'flex';
-        }
-
-        function refreshLiveEditorDropdowns() {
-            const memberSelect = document.getElementById('moveMemberSelect');
-            const groupSelect = document.getElementById('targetGroupSelect');
-            memberSelect.innerHTML = '';
-            groupSelect.innerHTML = '';
-
+        /* Visible Teacher Tools: Group Leader Picker */
+        document.getElementById('pickLeadersBtn').addEventListener('click', () => {
             if (currentGroupsState.length === 0) {
-                memberSelect.innerHTML = '<option value="">Generate groups first...</option>';
-                groupSelect.innerHTML = '<option value="">Target group...</option>';
+                alert('Please generate groups first!');
                 return;
             }
-
-            currentGroupsState.forEach((group, gIdx) => {
-                const gOpt = document.createElement('option');
-                gOpt.value = gIdx;
-                gOpt.textContent = `Group ${gIdx + 1}`;
-                groupSelect.appendChild(gOpt);
-
-                group.forEach((member, mIdx) => {
-                    const mOpt = document.createElement('option');
-                    mOpt.value = `${gIdx}:${mIdx}`;
-                    mOpt.textContent = `${member} (Group ${gIdx + 1})`;
-                    memberSelect.appendChild(mOpt);
-                });
+            currentGroupsState.forEach(groupObj => {
+                if (groupObj.members.length === 0) return;
+                groupObj.members.forEach(m => m.isLeader = false);
+                const randomLeaderIdx = Math.floor(Math.random() * groupObj.members.length);
+                groupObj.members[randomLeaderIdx].isLeader = true;
             });
-        }
-
-        // Shortcut 1: Ctrl + Shift + Y
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.shiftKey && (e.key === 'Y' || e.key === 'y')) {
-                e.preventDefault();
-                openTeacherTools();
-            }
+            renderGroupCards();
+            playShuffleSound();
+            document.getElementById('teacherToolsModal').style.display = 'none';
         });
 
-        // Shortcut 2: 5 rapid taps/clicks on top-right badge
-        let tapCount = 0;
-        let tapTimer = null;
-        document.getElementById('secretTrigger').addEventListener('click', () => {
-            tapCount++;
-            clearTimeout(tapTimer);
-            if (tapCount >= 5) {
-                tapCount = 0;
-                openTeacherTools();
+        /* Visible Teacher Tools: Countdown Timer */
+        let timerInterval = null;
+        let remainingSeconds = 300;
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('timerDisplay');
+            const mins = Math.floor(remainingSeconds / 60);
+            const secs = remainingSeconds % 60;
+            display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            if (remainingSeconds <= 30 && remainingSeconds > 0) {
+                display.classList.add('warning');
             } else {
-                tapTimer = setTimeout(() => {
-                    tapCount = 0;
-                }, 1200);
+                display.classList.remove('warning');
             }
+        }
+
+        document.getElementById('startTimerBtn').addEventListener('click', () => {
+            const display = document.getElementById('timerDisplay');
+            if (display.style.display === 'none' || !display.style.display) {
+                const inputMins = parseInt(document.getElementById('timerMinutesInput').value, 10) || 5;
+                remainingSeconds = inputMins * 60;
+            }
+            display.style.display = 'block';
+            updateTimerDisplay();
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (remainingSeconds > 0) {
+                    remainingSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    display.classList.add('warning');
+                    playAlarmSound();
+                }
+            }, 1000);
+        });
+
+        document.getElementById('pauseTimerBtn').addEventListener('click', () => {
+            clearInterval(timerInterval);
+        });
+
+        document.getElementById('resetTimerBtn').addEventListener('click', () => {
+            clearInterval(timerInterval);
+            const display = document.getElementById('timerDisplay');
+            display.style.display = 'none';
+            display.classList.remove('warning');
+            const inputMins = parseInt(document.getElementById('timerMinutesInput').value, 10) || 5;
+            remainingSeconds = inputMins * 60;
+        });
+
+        /* Visible Teacher Tools Modal Events */
+        document.getElementById('teacherToolsBtn').addEventListener('click', () => {
+            document.getElementById('teacherToolsModal').style.display = 'flex';
         });
 
         document.getElementById('closeTeacherToolsBtn').addEventListener('click', () => {
@@ -795,22 +1077,52 @@
             }
         });
 
+        /* Secret Dev Tools Modal Events */
+        function openSecretTools() {
+            document.getElementById('secretToolsModal').style.display = 'flex';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && (e.key === 'Y' || e.key === 'y')) {
+                e.preventDefault();
+                openSecretTools();
+            }
+        });
+
+        let tapCount = 0;
+        let tapTimer = null;
+        document.getElementById('secretTrigger').addEventListener('click', () => {
+            tapCount++;
+            clearTimeout(tapTimer);
+            if (tapCount >= 5) {
+                tapCount = 0;
+                openSecretTools();
+            } else {
+                tapTimer = setTimeout(() => {
+                    tapCount = 0;
+                }, 1200);
+            }
+        });
+
+        document.getElementById('closeSecretToolsBtn').addEventListener('click', () => {
+            document.getElementById('secretToolsModal').style.display = 'none';
+        });
+
+        document.getElementById('secretToolsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'secretToolsModal') {
+                document.getElementById('secretToolsModal').style.display = 'none';
+            }
+        });
+
         document.getElementById('togglePriorityBtn').addEventListener('click', (e) => {
             priorityRuleEnabled = !priorityRuleEnabled;
             e.target.textContent = priorityRuleEnabled ? 'ENABLED' : 'DISABLED';
         });
 
-        document.getElementById('moveMemberBtn').addEventListener('click', () => {
-            const val = document.getElementById('moveMemberSelect').value;
-            const targetGroupIdx = parseInt(document.getElementById('targetGroupSelect').value, 10);
-            if (!val || isNaN(targetGroupIdx)) return;
-
-            const [fromGroupIdx, memberIdx] = val.split(':').map(Number);
-            if (fromGroupIdx === targetGroupIdx) return;
-
-            const [movedStudent] = currentGroupsState[fromGroupIdx].splice(memberIdx, 1);
-            currentGroupsState[targetGroupIdx].push(movedStudent);
-            renderGroupCards(currentGroupsState, false);
+        document.getElementById('toggleDragBtn').addEventListener('click', (e) => {
+            dragDropEnabled = !dragDropEnabled;
+            e.target.textContent = dragDropEnabled ? 'ON' : 'OFF';
+            renderGroupCards();
         });
 
         /* Saved Lists Logic */
