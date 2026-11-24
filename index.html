@@ -517,6 +517,7 @@
                 box-shadow: none !important;
                 page-break-inside: avoid;
                 padding-top: 14px;
+                transform: none !important;
             }
         }
     </style>
@@ -661,22 +662,34 @@
         </div>
     </div>
 
-    <!-- Morse Code Unlocked Vault (Priority Grouping Toggle Only) -->
+    <!-- Morse Code Unlocked Vault (Priority Grouping & Chaos Mode) -->
     <div class="modal-overlay" id="morseVaultModal">
-        <div class="modal-box" style="max-width: 380px;">
+        <div class="modal-box" style="max-width: 400px;">
             <div class="modal-header">
-                <h3>Core Override</h3>
+                <h3>Core Override (. -.- ---)</h3>
                 <button class="btn" id="closeMorseVaultBtn">Close</button>
             </div>
-            <div class="tt-section" style="margin-bottom: 0;">
+            
+            <div class="tt-section">
                 <div class="tt-section-header">
-                    <h4>Priority Squad Grouping</h4>
+                    <h4>1. Priority Squad Grouping</h4>
                 </div>
                 <div class="tt-toggle-row">
                     <span>Status:</span>
                     <button class="btn" id="togglePriorityBtn">ENABLED</button>
                 </div>
-                <p class="tt-hint">Unlocked via Morse code (. -.- ---). Turn OFF for 100% pure random grouping.</p>
+                <p class="tt-hint">Turn OFF for standard balanced grouping without squad bias.</p>
+            </div>
+
+            <div class="tt-section" style="margin-bottom: 0;">
+                <div class="tt-section-header">
+                    <h4>2. Chaos Mode</h4>
+                </div>
+                <div class="tt-toggle-row">
+                    <span>Unbalanced Chaos Shuffle:</span>
+                    <button class="btn" id="toggleChaosBtn">OFF</button>
+                </div>
+                <p class="tt-hint">Ignores all rules and group size limits; distributes people completely randomly (some groups may get 1 person, others 6+) and tilts cards.</p>
             </div>
         </div>
     </div>
@@ -684,6 +697,7 @@
     <script>
         let soundEnabled = true;
         let priorityRuleEnabled = true;
+        let chaosModeEnabled = false;
         let dragDropEnabled = false;
         let currentGroupsState = [];
         let draggedItemInfo = null;
@@ -698,11 +712,11 @@
             }
 
             const now = audioCtx.currentTime;
-            const notes = [330, 440, 554.37, 659.25];
+            const notes = chaosModeEnabled ? [220, 622.25, 311.13, 830.61] : [330, 440, 554.37, 659.25];
             notes.forEach((freq, index) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'triangle';
+                osc.type = chaosModeEnabled ? 'sawtooth' : 'triangle';
                 osc.frequency.setValueAtTime(freq, now + index * 0.05);
                 
                 gain.gain.setValueAtTime(0.15, now + index * 0.05);
@@ -763,7 +777,7 @@
         }
 
         function getPriorityRole(rawName) {
-            if (!priorityRuleEnabled) return null;
+            if (!priorityRuleEnabled || chaosModeEnabled) return null;
             const norm = normalizeTurkishText(rawName);
             const parts = norm.split(' ');
 
@@ -820,7 +834,6 @@
             container.appendChild(row);
         }
 
-        // Initialize with 1 empty blacklist row
         addBlacklistRow();
 
         document.getElementById('addBlacklistBtn').addEventListener('click', () => {
@@ -858,7 +871,6 @@
                         const idx2 = group.findIndex(n => normalizeTurkishText(n).includes(b2));
 
                         if (idx1 !== -1 && idx2 !== -1 && idx1 !== idx2) {
-                            // Try to swap idx2 with a non-conflicting member from another bucket
                             const candidateName = group[idx2];
                             let swapped = false;
 
@@ -866,7 +878,6 @@
                                 if (otherIdx === gIdx) continue;
                                 const otherGroup = buckets[otherIdx];
 
-                                // Check if moving candidateName into otherGroup creates a new conflict
                                 const causesConflictInOther = blacklistPairs.some(([x, y]) => {
                                     const candNorm = normalizeTurkishText(candidateName);
                                     if (candNorm.includes(x)) {
@@ -880,7 +891,6 @@
 
                                 if (causesConflictInOther) continue;
 
-                                // Find a non-protected member in otherGroup to swap back into gIdx
                                 const swapPartnerIdx = otherGroup.findIndex(m => {
                                     if (isProtectedMember(m, pair1Raw, pair2Raw)) return false;
                                     const mNorm = normalizeTurkishText(m);
@@ -900,7 +910,6 @@
                                 }
                             }
 
-                            // Fallback: direct move if no swap partner found
                             if (!swapped) {
                                 const targetIdx = (gIdx + 1) % buckets.length;
                                 const [moved] = group.splice(idx2, 1);
@@ -927,8 +936,14 @@
 
             currentGroupsState.forEach((groupObj, gIdx) => {
                 const card = document.createElement('div');
-                const themeClass = themes[gIdx % themes.length];
+                const themeIndex = chaosModeEnabled ? Math.floor(Math.random() * themes.length) : (gIdx % themes.length);
+                const themeClass = themes[themeIndex];
                 card.className = `group-card ${themeClass}${groupObj.locked ? ' locked-card' : ''}`;
+
+                if (chaosModeEnabled) {
+                    const tilt = (Math.random() * 8 - 4).toFixed(1);
+                    card.style.transform = `rotate(${tilt}deg)`;
+                }
 
                 const lockBtn = document.createElement('button');
                 lockBtn.className = 'lock-btn';
@@ -1054,75 +1069,85 @@
                 return;
             }
 
-            const pair1Raw = normalizeTurkishText(document.getElementById('pairName1').value);
-            const pair2Raw = normalizeTurkishText(document.getElementById('pairName2').value);
-            const blacklistPairs = getActiveBlacklistPairs();
-
-            let ekremEntry = null;
-            const otherPriorityMembers = [];
-            const customPairMembers = [];
-            const regularMembers = [];
-
-            namesToDistribute.forEach(name => {
-                const norm = normalizeTurkishText(name);
-                const role = getPriorityRole(name);
-
-                if (role === 'ekrem' && !ekremEntry) {
-                    ekremEntry = name;
-                } else if (role === 'other_priority') {
-                    otherPriorityMembers.push(name);
-                } else if ((pair1Raw && norm.includes(pair1Raw)) || (pair2Raw && norm.includes(pair2Raw))) {
-                    customPairMembers.push(name);
-                } else {
-                    regularMembers.push(name);
-                }
-            });
-
-            const maxCapacityPerUnlocked = Math.ceil(namesToDistribute.length / unlockedIndices.length);
             const unlockedBuckets = Array.from({ length: unlockedIndices.length }, () => []);
-            const targetBucketIdx = Math.floor(Math.random() * unlockedIndices.length);
 
-            const shuffledOthers = fisherYatesShuffle(otherPriorityMembers);
+            if (chaosModeEnabled) {
+                // CHAOS MODE: Completely ignore balance, priority, pairs, and blacklists
+                const chaosShuffled = fisherYatesShuffle(namesToDistribute);
+                chaosShuffled.forEach(member => {
+                    const randomBucket = Math.floor(Math.random() * unlockedIndices.length);
+                    unlockedBuckets[randomBucket].push(member);
+                });
+            } else {
+                // NORMAL / PRIORITY MODE
+                const pair1Raw = normalizeTurkishText(document.getElementById('pairName1').value);
+                const pair2Raw = normalizeTurkishText(document.getElementById('pairName2').value);
+                const blacklistPairs = getActiveBlacklistPairs();
 
-            if (ekremEntry) {
-                unlockedBuckets[targetBucketIdx].push(ekremEntry);
-            }
+                let ekremEntry = null;
+                const otherPriorityMembers = [];
+                const customPairMembers = [];
+                const regularMembers = [];
 
-            shuffledOthers.forEach(member => {
-                if (unlockedBuckets[targetBucketIdx].length < maxCapacityPerUnlocked) {
-                    unlockedBuckets[targetBucketIdx].push(member);
-                } else {
-                    regularMembers.push(member);
+                namesToDistribute.forEach(name => {
+                    const norm = normalizeTurkishText(name);
+                    const role = getPriorityRole(name);
+
+                    if (role === 'ekrem' && !ekremEntry) {
+                        ekremEntry = name;
+                    } else if (role === 'other_priority') {
+                        otherPriorityMembers.push(name);
+                    } else if ((pair1Raw && norm.includes(pair1Raw)) || (pair2Raw && norm.includes(pair2Raw))) {
+                        customPairMembers.push(name);
+                    } else {
+                        regularMembers.push(name);
+                    }
+                });
+
+                const maxCapacityPerUnlocked = Math.ceil(namesToDistribute.length / unlockedIndices.length);
+                const targetBucketIdx = Math.floor(Math.random() * unlockedIndices.length);
+
+                const shuffledOthers = fisherYatesShuffle(otherPriorityMembers);
+
+                if (ekremEntry) {
+                    unlockedBuckets[targetBucketIdx].push(ekremEntry);
                 }
-            });
 
-            if (customPairMembers.length > 0) {
-                let pairBucketIdx = Math.floor(Math.random() * unlockedIndices.length);
-                if (pairBucketIdx === targetBucketIdx && unlockedIndices.length > 1 && unlockedBuckets[targetBucketIdx].length > 0) {
-                    pairBucketIdx = (targetBucketIdx + 1) % unlockedIndices.length;
-                }
-                customPairMembers.forEach(member => {
-                    if (unlockedBuckets[pairBucketIdx].length < maxCapacityPerUnlocked) {
-                        unlockedBuckets[pairBucketIdx].push(member);
+                shuffledOthers.forEach(member => {
+                    if (unlockedBuckets[targetBucketIdx].length < maxCapacityPerUnlocked) {
+                        unlockedBuckets[targetBucketIdx].push(member);
                     } else {
                         regularMembers.push(member);
                     }
                 });
-            }
 
-            const shuffledRegular = fisherYatesShuffle(regularMembers);
-            shuffledRegular.forEach(member => {
-                let minIdx = 0;
-                for (let i = 1; i < unlockedBuckets.length; i++) {
-                    if (unlockedBuckets[i].length < unlockedBuckets[minIdx].length) {
-                        minIdx = i;
+                if (customPairMembers.length > 0) {
+                    let pairBucketIdx = Math.floor(Math.random() * unlockedIndices.length);
+                    if (pairBucketIdx === targetBucketIdx && unlockedIndices.length > 1 && unlockedBuckets[targetBucketIdx].length > 0) {
+                        pairBucketIdx = (targetBucketIdx + 1) % unlockedIndices.length;
                     }
+                    customPairMembers.forEach(member => {
+                        if (unlockedBuckets[pairBucketIdx].length < maxCapacityPerUnlocked) {
+                            unlockedBuckets[pairBucketIdx].push(member);
+                        } else {
+                            regularMembers.push(member);
+                        }
+                    });
                 }
-                unlockedBuckets[minIdx].push(member);
-            });
 
-            // Enforce all blacklist rules across unlocked buckets
-            enforceBlacklistSeparation(unlockedBuckets, blacklistPairs, pair1Raw, pair2Raw);
+                const shuffledRegular = fisherYatesShuffle(regularMembers);
+                shuffledRegular.forEach(member => {
+                    let minIdx = 0;
+                    for (let i = 1; i < unlockedBuckets.length; i++) {
+                        if (unlockedBuckets[i].length < unlockedBuckets[minIdx].length) {
+                            minIdx = i;
+                        }
+                    }
+                    unlockedBuckets[minIdx].push(member);
+                });
+
+                enforceBlacklistSeparation(unlockedBuckets, blacklistPairs, pair1Raw, pair2Raw);
+            }
 
             const nextState = [];
             let uPointer = 0;
@@ -1149,7 +1174,6 @@
 
         /* Morse Code Trigger for "EKO" (. -.- ---) on ClassGroups Logo */
         // Red "Class" = '.' | Blue "Groups" = '-'
-        // Target sequence for EKO: . - . - - - - (7 taps)
         const TARGET_MORSE = '.-.----';
         let currentMorseBuffer = '';
         let morseResetTimer = null;
@@ -1189,6 +1213,16 @@
         document.getElementById('togglePriorityBtn').addEventListener('click', (e) => {
             priorityRuleEnabled = !priorityRuleEnabled;
             e.target.textContent = priorityRuleEnabled ? 'ENABLED' : 'DISABLED';
+        });
+
+        document.getElementById('toggleChaosBtn').addEventListener('click', (e) => {
+            chaosModeEnabled = !chaosModeEnabled;
+            e.target.textContent = chaosModeEnabled ? 'ON' : 'OFF';
+            if (chaosModeEnabled) {
+                e.target.classList.add('btn-danger');
+            } else {
+                e.target.classList.remove('btn-danger');
+            }
         });
 
         /* Visible Teacher Tools: Group Leader Picker */
