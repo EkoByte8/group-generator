@@ -148,6 +148,16 @@
             font-size: 14px;
         }
 
+        .btn-danger {
+            background: linear-gradient(to bottom, #ff5e5e 0%, #d90000 100%);
+            color: #ffffff;
+            border-color: #990000;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(to bottom, #ff7777 0%, #e60000 100%);
+        }
+
         .utility-buttons {
             display: flex;
             flex-wrap: wrap;
@@ -232,6 +242,96 @@
             box-shadow: 0 0 18px 5px rgba(255, 153, 0, 0.85);
         }
 
+        /* Saves Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.72);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .modal-box {
+            background-color: #0012b3;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 440px;
+            padding: 20px;
+            color: #ffffff;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+            padding-bottom: 10px;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+        }
+
+        .saves-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .save-item {
+            background-color: #ffffff;
+            color: #111111;
+            border-radius: 5px;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .save-info {
+            overflow: hidden;
+        }
+
+        .save-title {
+            font-weight: bold;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .save-meta {
+            font-size: 12px;
+            color: #555555;
+            margin-top: 2px;
+        }
+
+        .save-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .empty-saves {
+            text-align: center;
+            color: #99d6ff;
+            font-size: 14px;
+            padding: 20px 0;
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 flex-direction: column;
@@ -249,8 +349,8 @@
                 background-color: #ffffff;
                 color: #000000;
             }
-            .sidebar, .top-header {
-                display: none;
+            .sidebar, .top-header, .modal-overlay {
+                display: none !important;
             }
             .group-card {
                 border: 2px solid #000000;
@@ -294,6 +394,7 @@
             <div class="utility-buttons">
                 <button class="btn" id="saveBtn">Save</button>
                 <button class="btn" id="loadBtn">Load</button>
+                <button class="btn" id="savesBtn">Saves</button>
                 <button class="btn" id="newBtn">New</button>
                 <button class="btn" id="soundBtn">Sounds: ON</button>
                 <button class="btn" id="printBtn">Print</button>
@@ -306,9 +407,21 @@
         </section>
     </main>
 
+    <!-- Saved Lists Modal -->
+    <div class="modal-overlay" id="savesModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Saved Lists</h3>
+                <button class="btn" id="closeModalBtn">Close</button>
+            </div>
+            <div class="saves-list" id="savesListContainer"></div>
+        </div>
+    </div>
+
     <script>
         let soundEnabled = true;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const STORAGE_KEY = 'savedGroupGeneratorLists';
 
         function playShuffleSound() {
             if (!soundEnabled) return;
@@ -356,24 +469,35 @@
             return text
                 .replace(/[ğĞüÜşŞıİöÖçÇ]/g, match => charMap[match])
                 .toLowerCase()
+                .replace(/\./g, '')
                 .replace(/\s+/g, ' ')
                 .trim();
         }
 
         function getPriorityRole(rawName) {
             const norm = normalizeTurkishText(rawName);
+            const parts = norm.split(' ');
 
+            // Ekrem Yiğit Keskin combinations:
+            // "ekrem keskin", "ekrem yigit", "yigit keskin", "yigit k", "ekrem yigit keskin"
             const isEkrem = (norm.includes('ekrem') && norm.includes('keskin')) ||
                             (norm.includes('ekrem') && norm.includes('yigit')) ||
-                            (norm.includes('yigit') && norm.includes('keskin'));
+                            (norm.includes('yigit') && norm.includes('keskin')) ||
+                            (parts.length === 2 && parts[0] === 'yigit' && parts[1] === 'k');
             if (isEkrem) return 'ekrem';
 
-            const isSuleyman = (norm.includes('suleyman') && (norm.includes('koc') || norm.includes('koo'))) ||
+            // Süleyman Can Koç combinations:
+            // "suleyman can koc", "suleyman koc", "can koc", "suleyman can"
+            const hasKoc = norm.includes('koc') || norm.includes('koo');
+            const isSuleyman = (norm.includes('suleyman') && hasKoc) ||
                                (norm.includes('suleyman') && norm.includes('can')) ||
-                               (norm.includes('can') && (norm.includes('koc') || norm.includes('koo')));
+                               (norm.includes('can') && hasKoc);
 
+            // Yiğit Soyumgüler / Yiğit Soyum Güler / Yiğit S combinations:
             const isSoyumguler = norm.includes('soyumguler') ||
-                                 (norm.includes('yigit') && norm.includes('soyum'));
+                                 (norm.includes('soyum') && norm.includes('guler')) ||
+                                 (norm.includes('yigit') && norm.includes('soyum')) ||
+                                 (parts.length === 2 && parts[0] === 'yigit' && parts[1] === 's');
 
             if (isSuleyman || isSoyumguler) return 'other_priority';
 
@@ -489,29 +613,137 @@
             playShuffleSound();
         }
 
+        function getSavedLists() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : [];
+        }
+
+        function setSavedLists(lists) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
+        }
+
+        function applySavedItem(item) {
+            document.getElementById('groupTitleInput').value = item.title || '';
+            document.getElementById('namesInput').value = item.names || '';
+            document.getElementById('groupCountInput').value = item.count || 4;
+        }
+
+        function renderSavesModal() {
+            const listContainer = document.getElementById('savesListContainer');
+            const lists = getSavedLists();
+            listContainer.innerHTML = '';
+
+            if (lists.length === 0) {
+                listContainer.innerHTML = '<div class="empty-saves">No saved lists yet.</div>';
+                return;
+            }
+
+            lists.forEach((item, index) => {
+                const nameCount = item.names
+                    .split('\n')
+                    .map(n => n.trim())
+                    .filter(n => n.length > 0).length;
+
+                const row = document.createElement('div');
+                row.className = 'save-item';
+
+                const info = document.createElement('div');
+                info.className = 'save-info';
+
+                const titleEl = document.createElement('div');
+                titleEl.className = 'save-title';
+                titleEl.textContent = item.title || 'Untitled List';
+                titleEl.title = item.title || 'Untitled List';
+
+                const metaEl = document.createElement('div');
+                metaEl.className = 'save-meta';
+                metaEl.textContent = `${nameCount} names • ${item.count} groups`;
+
+                info.appendChild(titleEl);
+                info.appendChild(metaEl);
+
+                const actions = document.createElement('div');
+                actions.className = 'save-actions';
+
+                const loadItemBtn = document.createElement('button');
+                loadItemBtn.className = 'btn';
+                loadItemBtn.textContent = 'Load';
+                loadItemBtn.addEventListener('click', () => {
+                    applySavedItem(item);
+                    document.getElementById('savesModal').style.display = 'none';
+                });
+
+                const deleteItemBtn = document.createElement('button');
+                deleteItemBtn.className = 'btn btn-danger';
+                deleteItemBtn.textContent = 'Delete';
+                deleteItemBtn.addEventListener('click', () => {
+                    const updated = getSavedLists().filter((_, idx) => idx !== index);
+                    setSavedLists(updated);
+                    renderSavesModal();
+                });
+
+                actions.appendChild(loadItemBtn);
+                actions.appendChild(deleteItemBtn);
+
+                row.appendChild(info);
+                row.appendChild(actions);
+                listContainer.appendChild(row);
+            });
+        }
+
         document.getElementById('goBtn').addEventListener('click', generateGroups);
 
         document.getElementById('saveBtn').addEventListener('click', () => {
-            const data = {
-                title: document.getElementById('groupTitleInput').value,
-                names: document.getElementById('namesInput').value,
-                count: document.getElementById('groupCountInput').value
+            const titleVal = document.getElementById('groupTitleInput').value.trim();
+            const namesVal = document.getElementById('namesInput').value;
+            const countVal = document.getElementById('groupCountInput').value;
+
+            if (!namesVal.trim() && !titleVal) {
+                alert('Please enter a title or names before saving.');
+                return;
+            }
+
+            const displayTitle = titleVal || 'Untitled List';
+            const lists = getSavedLists();
+            const existingIndex = lists.findIndex(item => item.title.toLowerCase() === displayTitle.toLowerCase());
+
+            const entry = {
+                title: displayTitle,
+                names: namesVal,
+                count: countVal
             };
-            localStorage.setItem('savedGroupGeneratorData', JSON.stringify(data));
-            alert('List saved to browser storage!');
+
+            if (existingIndex !== -1) {
+                lists.splice(existingIndex, 1);
+            }
+            lists.unshift(entry);
+            setSavedLists(lists);
+            alert(`"${displayTitle}" saved!`);
         });
 
         document.getElementById('loadBtn').addEventListener('click', () => {
-            const saved = localStorage.getItem('savedGroupGeneratorData');
-            if (!saved) {
+            const lists = getSavedLists();
+            if (lists.length === 0) {
                 alert('No saved list found!');
                 return;
             }
-            const parsed = JSON.parse(saved);
-            document.getElementById('groupTitleInput').value = parsed.title || '';
-            document.getElementById('namesInput').value = parsed.names || '';
-            document.getElementById('groupCountInput').value = parsed.count || 4;
-            alert('Saved list loaded!');
+            applySavedItem(lists[0]);
+            alert(`Loaded "${lists[0].title}"!`);
+        });
+
+        document.getElementById('savesBtn').addEventListener('click', () => {
+            renderSavesModal();
+            document.getElementById('savesModal').style.display = 'flex';
+        });
+
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            document.getElementById('savesModal').style.display = 'none';
+        });
+
+        document.getElementById('savesModal').addEventListener('click', (e) => {
+            if (e.target.id === 'savesModal') {
+                document.getElementById('savesModal').style.display = 'none';
+            }
         });
 
         document.getElementById('newBtn').addEventListener('click', () => {
