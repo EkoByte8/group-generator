@@ -293,6 +293,7 @@
 
             <div class="utility-buttons">
                 <button class="btn" id="saveBtn">Save</button>
+                <button class="btn" id="loadBtn">Load</button>
                 <button class="btn" id="newBtn">New</button>
                 <button class="btn" id="soundBtn">Sounds: ON</button>
                 <button class="btn" id="printBtn">Print</button>
@@ -379,7 +380,7 @@
             return null;
         }
 
-        function generateGroups(isInitialLoad = false) {
+        function generateGroups() {
             const title = document.getElementById('groupTitleInput').value.trim();
             const rawNames = document.getElementById('namesInput').value;
             let groupCount = parseInt(document.getElementById('groupCountInput').value, 10);
@@ -394,9 +395,7 @@
             container.innerHTML = '';
 
             if (names.length === 0) {
-                if (!isInitialLoad) {
-                    alert('Please enter at least one name.');
-                }
+                alert('Please enter at least one name.');
                 return;
             }
 
@@ -490,7 +489,7 @@
             playShuffleSound();
         }
 
-        document.getElementById('goBtn').addEventListener('click', () => generateGroups(false));
+        document.getElementById('goBtn').addEventListener('click', generateGroups);
 
         document.getElementById('saveBtn').addEventListener('click', () => {
             const data = {
@@ -500,6 +499,19 @@
             };
             localStorage.setItem('savedGroupGeneratorData', JSON.stringify(data));
             alert('List saved to browser storage!');
+        });
+
+        document.getElementById('loadBtn').addEventListener('click', () => {
+            const saved = localStorage.getItem('savedGroupGeneratorData');
+            if (!saved) {
+                alert('No saved list found!');
+                return;
+            }
+            const parsed = JSON.parse(saved);
+            document.getElementById('groupTitleInput').value = parsed.title || '';
+            document.getElementById('namesInput').value = parsed.names || '';
+            document.getElementById('groupCountInput').value = parsed.count || 4;
+            alert('Saved list loaded!');
         });
 
         document.getElementById('newBtn').addEventListener('click', () => {
@@ -518,22 +530,6 @@
 
         document.getElementById('printBtn').addEventListener('click', () => {
             window.print();
-        });
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('savedGroupGeneratorData');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                document.getElementById('groupTitleInput').value = parsed.title || '';
-                document.getElementById('namesInput').value = parsed.names || '';
-                document.getElementById('groupCountInput').value = parsed.count || 4;
-                
-                if (parsed.names && parsed.names.trim().length > 0) {
-                    soundEnabled = false;
-                    generateGroups(true);
-                    soundEnabled = true;
-                }
-            }
         });
     </script>
 </body>
