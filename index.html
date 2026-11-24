@@ -140,11 +140,24 @@
             letter-spacing: 1px;
             box-shadow: 0 0 14px rgba(57, 255, 20, 0.7);
             font-family: 'Courier New', monospace;
+            user-select: none;
         }
 
         .timer-badge.warning {
             color: #ff2a2a;
             box-shadow: 0 0 14px rgba(255, 42, 42, 0.9);
+        }
+
+        .timer-badge.ringing {
+            background-color: #d90000;
+            color: #ffffff;
+            cursor: pointer;
+            animation: alarmPulse 0.45s infinite alternate;
+        }
+
+        @keyframes alarmPulse {
+            0% { transform: scale(1); box-shadow: 0 0 12px #ff2a2a; }
+            100% { transform: scale(1.1); box-shadow: 0 0 26px #ffdd00; }
         }
 
         .logo-placeholder {
@@ -648,7 +661,7 @@
             <p id="mainPageSubtitle">Enter names, choose the number of groups, and shuffle!</p>
         </div>
         <div class="header-right">
-            <div class="timer-badge" id="timerDisplay">05:00</div>
+            <div class="timer-badge" id="timerDisplay" title="Click to stop alarm">05:00</div>
             <div class="logo-placeholder" id="secretTrigger">EkoByte &amp; Gemini</div>
         </div>
     </header>
@@ -731,7 +744,7 @@
                     <button class="btn" id="pauseTimerBtn">Pause</button>
                     <button class="btn btn-danger" id="resetTimerBtn">Reset</button>
                 </div>
-                <p class="tt-hint">Displays a live countdown clock at the top right of the screen.</p>
+                <p class="tt-hint">Rings an alarm continuously when time runs out. Click the red clock to mute.</p>
             </div>
         </div>
     </div>
@@ -821,11 +834,15 @@
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const STORAGE_KEY = 'savedGroupGeneratorLists';
 
-        function playNormalShuffleSound() {
-            if (!soundEnabled) return;
+        function ensureAudioReady() {
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+        }
+
+        function playNormalShuffleSound() {
+            if (!soundEnabled) return;
+            ensureAudioReady();
 
             const now = audioCtx.currentTime;
             const notes = [330, 440, 554.37, 659.25];
@@ -848,18 +865,14 @@
 
         function playGlitchMatchingSound(durationSec = 0.95) {
             if (!soundEnabled) return;
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            ensureAudioReady();
 
             const now = audioCtx.currentTime;
 
-            // 1. Filtered White Noise Static Bursts (Digital Glitch Crackle)
             const bufferSize = Math.floor(audioCtx.sampleRate * durationSec);
             const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = noiseBuffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) {
-                // Create choppy, stuttered digital static
                 const stutter = Math.sin(i * 0.002) > -0.2 ? 1 : 0.05;
                 data[i] = (Math.random() * 2 - 1) * stutter;
             }
@@ -881,7 +894,6 @@
             noiseGain.connect(audioCtx.destination);
             noiseSource.start(now);
 
-            // 2. Rapid Stuttering Frequency Jumps (Bit-crushed Glitch Beeps)
             const steps = 16;
             const stepDur = durationSec / steps;
             const glitchFreqs = [110, 1480, 220, 2960, 185, 2217, 92, 3520, 311, 1975, 138, 2637];
@@ -908,13 +920,10 @@
 
         function playChaosExplosionSound() {
             if (!soundEnabled) return;
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            ensureAudioReady();
 
             const now = audioCtx.currentTime;
 
-            // Sci-Fi Siren + Sub-bass Explosion Finish
             const sirenOsc = audioCtx.createOscillator();
             const sirenGain = audioCtx.createGain();
             sirenOsc.type = 'sawtooth';
@@ -984,23 +993,25 @@
             }
         }
 
-        function playAlarmSound() {
+        function playSingleAlarmBurst() {
             if (!soundEnabled) return;
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            ensureAudioReady();
+
             const now = audioCtx.currentTime;
-            [880, 659.25, 880, 1046.5].forEach((freq, i) => {
+            // Classic 4-beep digital alarm clock pattern (bi-bi-bi-bip)
+            [0, 0.14, 0.28, 0.42].forEach(offset => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, now + i * 0.18);
-                gain.gain.setValueAtTime(0.2, now + i * 0.18);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.18 + 0.16);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(1046.5, now + offset);
+
+                gain.gain.setValueAtTime(0.26, now + offset);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.1);
+
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                osc.start(now + i * 0.18);
-                osc.stop(now + i * 0.18 + 0.16);
+                osc.start(now + offset);
+                osc.stop(now + offset + 0.11);
             });
         }
 
@@ -1317,14 +1328,12 @@
             const unlockedBuckets = Array.from({ length: unlockedIndices.length }, () => []);
 
             if (chaosModeEnabled) {
-                // CHAOS MODE: Equal group sizes preserved, completely random distribution without rules
                 const chaosShuffled = fisherYatesShuffle(namesToDistribute);
                 chaosShuffled.forEach((member, idx) => {
                     const bucketIdx = idx % unlockedIndices.length;
                     unlockedBuckets[bucketIdx].push(member);
                 });
             } else {
-                // NORMAL / PRIORITY MODE: Equal group sizes + Priority / Custom Pair / Blacklist rules
                 const pair1Raw = normalizeTurkishText(document.getElementById('pairName1').value);
                 const pair2Raw = normalizeTurkishText(document.getElementById('pairName2').value);
                 const blacklistPairs = getActiveBlacklistPairs();
@@ -1417,6 +1426,7 @@
 
         function generateGroups() {
             if (isMatchingInProgress) return;
+            ensureAudioReady();
 
             const title = document.getElementById('groupTitleInput').value.trim();
             const rawNames = document.getElementById('namesInput').value;
@@ -1456,7 +1466,6 @@
                 return;
             }
 
-            // Matching Phase with Glitch Sounds & Visual Scramble
             isMatchingInProgress = true;
             const goBtn = document.getElementById('goBtn');
             goBtn.disabled = true;
@@ -1489,7 +1498,6 @@
         }
 
         /* Morse Code Trigger for "EKO" (. -.- ---) on ClassGroups Logo */
-        // Red "Class" = '.' | Blue "Groups" = '-'
         const TARGET_MORSE = '.-.----';
         let currentMorseBuffer = '';
         let morseResetTimer = null;
@@ -1574,9 +1582,28 @@
             document.getElementById('teacherToolsModal').style.display = 'none';
         });
 
-        /* Visible Teacher Tools: Countdown Timer */
+        /* Visible Teacher Tools: Countdown Timer & Repeating Alarm */
         let timerInterval = null;
+        let alarmLoopInterval = null;
         let remainingSeconds = 300;
+
+        function stopAlarmLoop() {
+            if (alarmLoopInterval) {
+                clearInterval(alarmLoopInterval);
+                alarmLoopInterval = null;
+            }
+            document.getElementById('timerDisplay').classList.remove('ringing');
+        }
+
+        function startAlarmLoop() {
+            stopAlarmLoop();
+            const display = document.getElementById('timerDisplay');
+            display.classList.add('warning', 'ringing');
+            playSingleAlarmBurst();
+            alarmLoopInterval = setInterval(() => {
+                playSingleAlarmBurst();
+            }, 1200);
+        }
 
         function updateTimerDisplay() {
             const display = document.getElementById('timerDisplay');
@@ -1585,14 +1612,23 @@
             display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
             if (remainingSeconds <= 30 && remainingSeconds > 0) {
                 display.classList.add('warning');
-            } else {
+            } else if (remainingSeconds > 30) {
                 display.classList.remove('warning');
             }
         }
 
+        document.getElementById('timerDisplay').addEventListener('click', () => {
+            if (alarmLoopInterval) {
+                stopAlarmLoop();
+            }
+        });
+
         document.getElementById('startTimerBtn').addEventListener('click', () => {
+            ensureAudioReady();
+            stopAlarmLoop();
+
             const display = document.getElementById('timerDisplay');
-            if (display.style.display === 'none' || !display.style.display) {
+            if (display.style.display === 'none' || !display.style.display || remainingSeconds <= 0) {
                 const inputMins = parseInt(document.getElementById('timerMinutesInput').value, 10) || 5;
                 remainingSeconds = inputMins * 60;
             }
@@ -1604,20 +1640,25 @@
                 if (remainingSeconds > 0) {
                     remainingSeconds--;
                     updateTimerDisplay();
+                    if (remainingSeconds === 0) {
+                        clearInterval(timerInterval);
+                        startAlarmLoop();
+                    }
                 } else {
                     clearInterval(timerInterval);
-                    display.classList.add('warning');
-                    playAlarmSound();
+                    startAlarmLoop();
                 }
             }, 1000);
         });
 
         document.getElementById('pauseTimerBtn').addEventListener('click', () => {
             clearInterval(timerInterval);
+            stopAlarmLoop();
         });
 
         document.getElementById('resetTimerBtn').addEventListener('click', () => {
             clearInterval(timerInterval);
+            stopAlarmLoop();
             const display = document.getElementById('timerDisplay');
             display.style.display = 'none';
             display.classList.remove('warning');
@@ -1830,6 +1871,9 @@
         document.getElementById('soundBtn').addEventListener('click', (e) => {
             soundEnabled = !soundEnabled;
             e.target.textContent = soundEnabled ? 'Sounds: ON' : 'Sounds: OFF';
+            if (!soundEnabled) {
+                stopAlarmLoop();
+            }
         });
 
         document.getElementById('printBtn').addEventListener('click', () => {
