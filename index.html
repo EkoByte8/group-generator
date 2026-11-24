@@ -17,6 +17,41 @@
             color: #ffffff;
             min-height: 100vh;
             padding: 15px 25px;
+            overflow-x: hidden;
+            transition: background-color 0.3s;
+        }
+
+        /* Chaos Global Screen Effects */
+        body.chaos-active {
+            background-color: #120024;
+            background-image: radial-gradient(circle at center, #3b0066 0%, #090014 100%);
+        }
+
+        body.chaos-shake {
+            animation: screenShake 0.65s cubic-bezier(.36,.07,.19,.97) both, strobeFlash 0.65s linear;
+        }
+
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-14px, -10px) rotate(-2deg); }
+            20% { transform: translate(14px, 8px) rotate(2deg); }
+            30% { transform: translate(-16px, 12px) rotate(-3deg); }
+            40% { transform: translate(16px, -12px) rotate(3deg); }
+            50% { transform: translate(-12px, -8px) rotate(-1.5deg); }
+            60% { transform: translate(12px, 10px) rotate(1.5deg); }
+            70% { transform: translate(-8px, 6px) rotate(-1deg); }
+            80% { transform: translate(8px, -6px) rotate(1deg); }
+            90% { transform: translate(-4px, 4px) rotate(-0.5deg); }
+        }
+
+        @keyframes strobeFlash {
+            0% { filter: invert(0) hue-rotate(0deg); }
+            15% { filter: invert(1) hue-rotate(90deg); }
+            30% { filter: invert(0) hue-rotate(180deg); }
+            45% { filter: invert(1) hue-rotate(270deg); }
+            60% { filter: invert(0) hue-rotate(360deg); }
+            75% { filter: invert(0.8) hue-rotate(120deg); }
+            100% { filter: invert(0) hue-rotate(0deg); }
         }
 
         .top-header {
@@ -69,6 +104,16 @@
         .title-area h1 {
             font-size: 28px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        body.chaos-active .title-area h1 {
+            color: #ffdd00;
+            animation: titleGlitch 0.4s infinite alternate;
+        }
+
+        @keyframes titleGlitch {
+            0% { transform: skewX(-6deg) scale(1.02); text-shadow: -3px 0 #ff0055, 3px 0 #00f0ff; }
+            100% { transform: skewX(6deg) scale(0.98); text-shadow: 3px 0 #ff0055, -3px 0 #39ff14; }
         }
 
         .title-area p {
@@ -257,6 +302,28 @@
             transition: outline 0.15s;
         }
 
+        .group-card.chaos-card {
+            animation: chaosCardDrop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), chaosWobble 1.6s ease-in-out 0.7s infinite alternate, chaosHue 2.5s linear infinite;
+            border: 3px dashed #ffffff;
+        }
+
+        @keyframes chaosCardDrop {
+            0% { transform: scale(0.1) rotate(-720deg) translateY(-200px); opacity: 0; }
+            60% { transform: scale(1.25) rotate(25deg) translateY(20px); opacity: 1; }
+            80% { transform: scale(0.9) rotate(-15deg); }
+            100% { transform: scale(1) rotate(var(--chaos-tilt, 3deg)); }
+        }
+
+        @keyframes chaosWobble {
+            0% { transform: rotate(calc(var(--chaos-tilt, 3deg) - 4deg)) scale(0.98); }
+            100% { transform: rotate(calc(var(--chaos-tilt, 3deg) + 4deg)) scale(1.04); }
+        }
+
+        @keyframes chaosHue {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
         .group-card.locked-card {
             outline: 4px solid #ffffff;
         }
@@ -297,6 +364,15 @@
             text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
             padding: 1px 4px;
             border-radius: 3px;
+        }
+
+        .group-card.chaos-card .member {
+            animation: memberBounce 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes memberBounce {
+            0% { transform: translateX(-4px) scale(0.97); }
+            100% { transform: translateX(4px) scale(1.03); }
         }
 
         .group-card .member.leader {
@@ -346,6 +422,30 @@
         .theme-orange {
             background-color: #ff9900;
             box-shadow: 0 0 18px 5px rgba(255, 153, 0, 0.85);
+        }
+
+        /* Floating Chaos Emoji Particles */
+        .chaos-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            font-size: 36px;
+            user-select: none;
+            animation: particleFly 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes particleFly {
+            0% {
+                transform: translate(0, 0) scale(0.3) rotate(0deg);
+                opacity: 1;
+            }
+            70% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--dx), var(--dy)) scale(1.8) rotate(var(--rot));
+                opacity: 0;
+            }
         }
 
         /* Modal Styles */
@@ -506,10 +606,11 @@
 
         @media print {
             body {
-                background-color: #ffffff;
-                color: #000000;
+                background-color: #ffffff !important;
+                background-image: none !important;
+                color: #000000 !important;
             }
-            .sidebar, .top-header, .modal-overlay, .lock-btn {
+            .sidebar, .top-header, .modal-overlay, .lock-btn, .chaos-particle {
                 display: none !important;
             }
             .group-card {
@@ -518,6 +619,8 @@
                 page-break-inside: avoid;
                 padding-top: 14px;
                 transform: none !important;
+                animation: none !important;
+                filter: none !important;
             }
         }
     </style>
@@ -529,8 +632,8 @@
             <span class="morse-dot" id="morseDotBtn">Class</span><span class="morse-dash" id="morseDashBtn">Groups</span>
         </div>
         <div class="title-area">
-            <h1>Random Group Generator</h1>
-            <p>Enter names, choose the number of groups, and shuffle!</p>
+            <h1 id="mainPageTitle">Random Group Generator</h1>
+            <p id="mainPageSubtitle">Enter names, choose the number of groups, and shuffle!</p>
         </div>
         <div class="header-right">
             <div class="timer-badge" id="timerDisplay">05:00</div>
@@ -686,10 +789,10 @@
                     <h4>2. Chaos Mode</h4>
                 </div>
                 <div class="tt-toggle-row">
-                    <span>Unbalanced Chaos Shuffle:</span>
+                    <span>Maximum Chaos Shuffle:</span>
                     <button class="btn" id="toggleChaosBtn">OFF</button>
                 </div>
-                <p class="tt-hint">Ignores all rules and group size limits; distributes people completely randomly (some groups may get 1 person, others 6+) and tilts cards.</p>
+                <p class="tt-hint">Ignores all rules and group sizes; unleashes screen shakes, spinning RGB cards, emoji explosions, and synth sirens!</p>
             </div>
         </div>
     </div>
@@ -705,18 +808,18 @@
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const STORAGE_KEY = 'savedGroupGeneratorLists';
 
-        function playShuffleSound() {
+        function playNormalShuffleSound() {
             if (!soundEnabled) return;
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
 
             const now = audioCtx.currentTime;
-            const notes = chaosModeEnabled ? [220, 622.25, 311.13, 830.61] : [330, 440, 554.37, 659.25];
+            const notes = [330, 440, 554.37, 659.25];
             notes.forEach((freq, index) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = chaosModeEnabled ? 'sawtooth' : 'triangle';
+                osc.type = 'triangle';
                 osc.frequency.setValueAtTime(freq, now + index * 0.05);
                 
                 gain.gain.setValueAtTime(0.15, now + index * 0.05);
@@ -728,6 +831,106 @@
                 osc.start(now + index * 0.05);
                 osc.stop(now + index * 0.05 + 0.15);
             });
+        }
+
+        function playChaosSoundEffects() {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+
+            // 1. Rising & falling Sci-Fi Siren
+            const sirenOsc = audioCtx.createOscillator();
+            const sirenGain = audioCtx.createGain();
+            sirenOsc.type = 'sawtooth';
+            sirenOsc.frequency.setValueAtTime(180, now);
+            sirenOsc.frequency.exponentialRampToValueAtTime(1400, now + 0.35);
+            sirenOsc.frequency.exponentialRampToValueAtTime(220, now + 0.7);
+            sirenOsc.frequency.exponentialRampToValueAtTime(1800, now + 1.05);
+            sirenOsc.frequency.exponentialRampToValueAtTime(90, now + 1.4);
+
+            sirenGain.gain.setValueAtTime(0.22, now);
+            sirenGain.gain.exponentialRampToValueAtTime(0.001, now + 1.45);
+
+            sirenOsc.connect(sirenGain);
+            sirenGain.connect(audioCtx.destination);
+            sirenOsc.start(now);
+            sirenOsc.stop(now + 1.45);
+
+            // 2. Rapid 8-bit Laser Arpeggio
+            const chaosNotes = [261.6, 987.7, 329.6, 1318.5, 415.3, 1760, 523.2, 2093, 392, 1567.9];
+            chaosNotes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+
+                gain.gain.setValueAtTime(0.14, now + idx * 0.09);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.11);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + idx * 0.09);
+                osc.stop(now + idx * 0.09 + 0.11);
+            });
+
+            // 3. Sub-bass Explosion Thump
+            const bassOsc = audioCtx.createOscillator();
+            const bassGain = audioCtx.createGain();
+            bassOsc.type = 'sine';
+            bassOsc.frequency.setValueAtTime(150, now);
+            bassOsc.frequency.exponentialRampToValueAtTime(32, now + 0.8);
+
+            bassGain.gain.setValueAtTime(0.45, now);
+            bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+
+            bassOsc.connect(bassGain);
+            bassGain.connect(audioCtx.destination);
+            bassOsc.start(now);
+            bassOsc.stop(now + 0.85);
+        }
+
+        function triggerChaosVisualExplosion() {
+            // Shake and strobe the whole screen
+            document.body.classList.remove('chaos-shake');
+            void document.body.offsetWidth; // Force reflow to restart animation
+            document.body.classList.add('chaos-shake');
+            setTimeout(() => {
+                document.body.classList.remove('chaos-shake');
+            }, 700);
+
+            // Spawn 35 flying chaotic emojis across the screen
+            const emojis = ['💥', '🔥', '🤡', '⚡', '🌀', '🎲', '🚨', '👾', '🤯', '🎉', '🛸'];
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            for (let i = 0; i < 35; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'chaos-particle';
+                particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+                const startX = centerX + (Math.random() * 260 - 130);
+                const startY = centerY + (Math.random() * 200 - 100);
+                particle.style.left = `${startX}px`;
+                particle.style.top = `${startY}px`;
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 220 + Math.random() * 520;
+                const dx = Math.cos(angle) * distance;
+                const dy = Math.sin(angle) * distance;
+                const rot = Math.floor(Math.random() * 1080 - 540);
+
+                particle.style.setProperty('--dx', `${dx}px`);
+                particle.style.setProperty('--dy', `${dy}px`);
+                particle.style.setProperty('--rot', `${rot}deg`);
+
+                document.body.appendChild(particle);
+                setTimeout(() => {
+                    particle.remove();
+                }, 1550);
+            }
         }
 
         function playAlarmSound() {
@@ -938,11 +1141,12 @@
                 const card = document.createElement('div');
                 const themeIndex = chaosModeEnabled ? Math.floor(Math.random() * themes.length) : (gIdx % themes.length);
                 const themeClass = themes[themeIndex];
-                card.className = `group-card ${themeClass}${groupObj.locked ? ' locked-card' : ''}`;
+                card.className = `group-card ${themeClass}${groupObj.locked ? ' locked-card' : ''}${chaosModeEnabled ? ' chaos-card' : ''}`;
 
                 if (chaosModeEnabled) {
-                    const tilt = (Math.random() * 8 - 4).toFixed(1);
-                    card.style.transform = `rotate(${tilt}deg)`;
+                    const tilt = (Math.random() * 14 - 7).toFixed(1);
+                    card.style.setProperty('--chaos-tilt', `${tilt}deg`);
+                    card.style.animationDelay = `${(gIdx * 0.06).toFixed(2)}s`;
                 }
 
                 const lockBtn = document.createElement('button');
@@ -1169,7 +1373,13 @@
 
             currentGroupsState = nextState;
             renderGroupCards();
-            playShuffleSound();
+
+            if (chaosModeEnabled) {
+                playChaosSoundEffects();
+                triggerChaosVisualExplosion();
+            } else {
+                playNormalShuffleSound();
+            }
         }
 
         /* Morse Code Trigger for "EKO" (. -.- ---) on ClassGroups Logo */
@@ -1217,11 +1427,27 @@
 
         document.getElementById('toggleChaosBtn').addEventListener('click', (e) => {
             chaosModeEnabled = !chaosModeEnabled;
-            e.target.textContent = chaosModeEnabled ? 'ON' : 'OFF';
+            const titleEl = document.getElementById('mainPageTitle');
+            const subEl = document.getElementById('mainPageSubtitle');
+
             if (chaosModeEnabled) {
+                e.target.textContent = 'ON';
                 e.target.classList.add('btn-danger');
+                document.body.classList.add('chaos-active');
+                titleEl.textContent = '⚠️ SYSTEM OVERLOAD: CHAOS MODE ⚠️';
+                subEl.textContent = 'No rules. No balance. Pure entropy!';
+                playChaosSoundEffects();
+                triggerChaosVisualExplosion();
             } else {
+                e.target.textContent = 'OFF';
                 e.target.classList.remove('btn-danger');
+                document.body.classList.remove('chaos-active');
+                titleEl.textContent = 'Random Group Generator';
+                subEl.textContent = 'Enter names, choose the number of groups, and shuffle!';
+            }
+
+            if (currentGroupsState.length > 0) {
+                renderGroupCards();
             }
         });
 
@@ -1238,7 +1464,7 @@
                 groupObj.members[randomLeaderIdx].isLeader = true;
             });
             renderGroupCards();
-            playShuffleSound();
+            playNormalShuffleSound();
             document.getElementById('teacherToolsModal').style.display = 'none';
         });
 
