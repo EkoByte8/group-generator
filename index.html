@@ -67,6 +67,8 @@
             color: #e0e0e0;
             border-radius: 4px;
             font-weight: bold;
+            user-select: none;
+            cursor: default;
         }
 
         .main-container {
@@ -93,7 +95,8 @@
 
         input[type="text"],
         textarea,
-        input[type="number"] {
+        input[type="number"],
+        select {
             width: 100%;
             border: none;
             border-radius: 5px;
@@ -242,7 +245,7 @@
             box-shadow: 0 0 18px 5px rgba(255, 153, 0, 0.85);
         }
 
-        /* Saves Modal Styles */
+        /* Modal Styles */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -250,7 +253,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.72);
+            background: rgba(0, 0, 0, 0.76);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -263,9 +266,11 @@
             box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
             border-radius: 8px;
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
             padding: 20px;
             color: #ffffff;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
@@ -332,6 +337,44 @@
             padding: 20px 0;
         }
 
+        /* Teacher Tools Specific Styles */
+        .tt-section {
+            background: rgba(0, 0, 0, 0.28);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+
+        .tt-section h4 {
+            font-size: 14px;
+            color: #ffdd00;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tt-toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .tt-input-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .tt-hint {
+            font-size: 12px;
+            color: #99d6ff;
+            margin-top: 6px;
+            line-height: 1.35;
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 flex-direction: column;
@@ -368,7 +411,7 @@
             <h1>Random Group Generator</h1>
             <p>Enter names, choose the number of groups, and shuffle!</p>
         </div>
-        <div class="logo-placeholder">EkoByte &amp; Gemini</div>
+        <div class="logo-placeholder" id="secretTrigger">EkoByte &amp; Gemini</div>
     </header>
 
     <main class="main-container">
@@ -418,8 +461,54 @@
         </div>
     </div>
 
+    <!-- Secret Teacher Tools Modal -->
+    <div class="modal-overlay" id="teacherToolsModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Teacher Tools</h3>
+                <button class="btn" id="closeTeacherToolsBtn">Close</button>
+            </div>
+
+            <div class="tt-section">
+                <h4>1. Priority Grouping Rule</h4>
+                <div class="tt-toggle-row">
+                    <span>Built-in Squad Grouping:</span>
+                    <button class="btn" id="togglePriorityBtn">ENABLED</button>
+                </div>
+                <p class="tt-hint">Turn OFF for 100% pure random grouping.</p>
+            </div>
+
+            <div class="tt-section">
+                <h4>2. Custom Pair Lock</h4>
+                <div class="tt-input-row">
+                    <input type="text" id="pairName1" placeholder="First name...">
+                    <input type="text" id="pairName2" placeholder="Second name...">
+                </div>
+                <p class="tt-hint">Forces these two people into the same group on next "Go!".</p>
+            </div>
+
+            <div class="tt-section">
+                <h4>3. Live Group Editor</h4>
+                <div class="tt-input-row">
+                    <select id="moveMemberSelect">
+                        <option value="">Generate groups first...</option>
+                    </select>
+                    <select id="targetGroupSelect">
+                        <option value="">Target group...</option>
+                    </select>
+                </div>
+                <div style="margin-top: 8px; text-align: right;">
+                    <button class="btn" id="moveMemberBtn">Move Student</button>
+                </div>
+                <p class="tt-hint">Silently moves a student to another group without re-shuffling.</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         let soundEnabled = true;
+        let priorityRuleEnabled = true;
+        let currentGroupsState = [];
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const STORAGE_KEY = 'savedGroupGeneratorLists';
 
@@ -475,25 +564,21 @@
         }
 
         function getPriorityRole(rawName) {
+            if (!priorityRuleEnabled) return null;
             const norm = normalizeTurkishText(rawName);
             const parts = norm.split(' ');
 
-            // Ekrem Yiğit Keskin combinations:
-            // "ekrem keskin", "ekrem yigit", "yigit keskin", "yigit k", "ekrem yigit keskin"
             const isEkrem = (norm.includes('ekrem') && norm.includes('keskin')) ||
                             (norm.includes('ekrem') && norm.includes('yigit')) ||
                             (norm.includes('yigit') && norm.includes('keskin')) ||
                             (parts.length === 2 && parts[0] === 'yigit' && parts[1] === 'k');
             if (isEkrem) return 'ekrem';
 
-            // Süleyman Can Koç combinations:
-            // "suleyman can koc", "suleyman koc", "can koc", "suleyman can"
             const hasKoc = norm.includes('koc') || norm.includes('koo');
             const isSuleyman = (norm.includes('suleyman') && hasKoc) ||
                                (norm.includes('suleyman') && norm.includes('can')) ||
                                (norm.includes('can') && hasKoc);
 
-            // Yiğit Soyumgüler / Yiğit Soyum Güler / Yiğit S combinations:
             const isSoyumguler = norm.includes('soyumguler') ||
                                  (norm.includes('soyum') && norm.includes('guler')) ||
                                  (norm.includes('yigit') && norm.includes('soyum')) ||
@@ -502,6 +587,42 @@
             if (isSuleyman || isSoyumguler) return 'other_priority';
 
             return null;
+        }
+
+        function renderGroupCards(groupsArray, shuffleOrder = true) {
+            const container = document.getElementById('groupsContainer');
+            container.innerHTML = '';
+
+            const themes = [
+                'theme-green',
+                'theme-red',
+                'theme-cyan',
+                'theme-yellow',
+                'theme-magenta',
+                'theme-orange'
+            ];
+
+            currentGroupsState = groupsArray.map(groupMembers => {
+                return shuffleOrder ? fisherYatesShuffle(groupMembers) : [...groupMembers];
+            });
+
+            currentGroupsState.forEach((groupMembers, idx) => {
+                const card = document.createElement('div');
+                const themeClass = themes[idx % themes.length];
+                card.className = `group-card ${themeClass}`;
+
+                groupMembers.forEach(member => {
+                    const memberDiv = document.createElement('div');
+                    memberDiv.className = 'member';
+                    memberDiv.textContent = member;
+                    memberDiv.title = member;
+                    card.appendChild(memberDiv);
+                });
+
+                container.appendChild(card);
+            });
+
+            refreshLiveEditorDropdowns();
         }
 
         function generateGroups() {
@@ -514,9 +635,7 @@
                 .map(name => name.trim())
                 .filter(name => name.length > 0);
 
-            const container = document.getElementById('groupsContainer');
             const titleDisplay = document.getElementById('displayGroupTitle');
-            container.innerHTML = '';
 
             if (names.length === 0) {
                 alert('Please enter at least one name.');
@@ -539,16 +658,24 @@
                 titleDisplay.style.display = 'none';
             }
 
+            const pair1Raw = normalizeTurkishText(document.getElementById('pairName1').value);
+            const pair2Raw = normalizeTurkishText(document.getElementById('pairName2').value);
+
             let ekremEntry = null;
             const otherPriorityMembers = [];
+            const customPairMembers = [];
             const regularMembers = [];
 
             names.forEach(name => {
+                const norm = normalizeTurkishText(name);
                 const role = getPriorityRole(name);
+
                 if (role === 'ekrem' && !ekremEntry) {
                     ekremEntry = name;
                 } else if (role === 'other_priority') {
                     otherPriorityMembers.push(name);
+                } else if ((pair1Raw && norm.includes(pair1Raw)) || (pair2Raw && norm.includes(pair2Raw))) {
+                    customPairMembers.push(name);
                 } else {
                     regularMembers.push(name);
                 }
@@ -572,6 +699,20 @@
                 }
             });
 
+            if (customPairMembers.length > 0) {
+                let pairTargetIdx = Math.floor(Math.random() * groupCount);
+                if (pairTargetIdx === targetGroupIndex && groupCount > 1 && groups[targetGroupIndex].length > 0) {
+                    pairTargetIdx = (targetGroupIndex + 1) % groupCount;
+                }
+                customPairMembers.forEach(member => {
+                    if (groups[pairTargetIdx].length < maxGroupCapacity) {
+                        groups[pairTargetIdx].push(member);
+                    } else {
+                        regularMembers.push(member);
+                    }
+                });
+            }
+
             const shuffledRegular = fisherYatesShuffle(regularMembers);
             shuffledRegular.forEach(member => {
                 let minGroupIdx = 0;
@@ -583,36 +724,96 @@
                 groups[minGroupIdx].push(member);
             });
 
-            const themes = [
-                'theme-green',
-                'theme-red',
-                'theme-cyan',
-                'theme-yellow',
-                'theme-magenta',
-                'theme-orange'
-            ];
-
-            groups.forEach((groupMembers, idx) => {
-                const card = document.createElement('div');
-                const themeClass = themes[idx % themes.length];
-                card.className = `group-card ${themeClass}`;
-
-                const finalDisplayOrder = fisherYatesShuffle(groupMembers);
-
-                finalDisplayOrder.forEach(member => {
-                    const memberDiv = document.createElement('div');
-                    memberDiv.className = 'member';
-                    memberDiv.textContent = member;
-                    memberDiv.title = member;
-                    card.appendChild(memberDiv);
-                });
-
-                container.appendChild(card);
-            });
-
+            renderGroupCards(groups, true);
             playShuffleSound();
         }
 
+        /* Teacher Tools Logic */
+        function openTeacherTools() {
+            refreshLiveEditorDropdowns();
+            document.getElementById('teacherToolsModal').style.display = 'flex';
+        }
+
+        function refreshLiveEditorDropdowns() {
+            const memberSelect = document.getElementById('moveMemberSelect');
+            const groupSelect = document.getElementById('targetGroupSelect');
+            memberSelect.innerHTML = '';
+            groupSelect.innerHTML = '';
+
+            if (currentGroupsState.length === 0) {
+                memberSelect.innerHTML = '<option value="">Generate groups first...</option>';
+                groupSelect.innerHTML = '<option value="">Target group...</option>';
+                return;
+            }
+
+            currentGroupsState.forEach((group, gIdx) => {
+                const gOpt = document.createElement('option');
+                gOpt.value = gIdx;
+                gOpt.textContent = `Group ${gIdx + 1}`;
+                groupSelect.appendChild(gOpt);
+
+                group.forEach((member, mIdx) => {
+                    const mOpt = document.createElement('option');
+                    mOpt.value = `${gIdx}:${mIdx}`;
+                    mOpt.textContent = `${member} (Group ${gIdx + 1})`;
+                    memberSelect.appendChild(mOpt);
+                });
+            });
+        }
+
+        // Shortcut 1: Ctrl + Shift + Y
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && (e.key === 'Y' || e.key === 'y')) {
+                e.preventDefault();
+                openTeacherTools();
+            }
+        });
+
+        // Shortcut 2: 5 rapid taps/clicks on top-right badge
+        let tapCount = 0;
+        let tapTimer = null;
+        document.getElementById('secretTrigger').addEventListener('click', () => {
+            tapCount++;
+            clearTimeout(tapTimer);
+            if (tapCount >= 5) {
+                tapCount = 0;
+                openTeacherTools();
+            } else {
+                tapTimer = setTimeout(() => {
+                    tapCount = 0;
+                }, 1200);
+            }
+        });
+
+        document.getElementById('closeTeacherToolsBtn').addEventListener('click', () => {
+            document.getElementById('teacherToolsModal').style.display = 'none';
+        });
+
+        document.getElementById('teacherToolsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'teacherToolsModal') {
+                document.getElementById('teacherToolsModal').style.display = 'none';
+            }
+        });
+
+        document.getElementById('togglePriorityBtn').addEventListener('click', (e) => {
+            priorityRuleEnabled = !priorityRuleEnabled;
+            e.target.textContent = priorityRuleEnabled ? 'ENABLED' : 'DISABLED';
+        });
+
+        document.getElementById('moveMemberBtn').addEventListener('click', () => {
+            const val = document.getElementById('moveMemberSelect').value;
+            const targetGroupIdx = parseInt(document.getElementById('targetGroupSelect').value, 10);
+            if (!val || isNaN(targetGroupIdx)) return;
+
+            const [fromGroupIdx, memberIdx] = val.split(':').map(Number);
+            if (fromGroupIdx === targetGroupIdx) return;
+
+            const [movedStudent] = currentGroupsState[fromGroupIdx].splice(memberIdx, 1);
+            currentGroupsState[targetGroupIdx].push(movedStudent);
+            renderGroupCards(currentGroupsState, false);
+        });
+
+        /* Saved Lists Logic */
         function getSavedLists() {
             const raw = localStorage.getItem(STORAGE_KEY);
             return raw ? JSON.parse(raw) : [];
@@ -752,6 +953,7 @@
                 document.getElementById('namesInput').value = '';
                 document.getElementById('groupsContainer').innerHTML = '';
                 document.getElementById('displayGroupTitle').style.display = 'none';
+                currentGroupsState = [];
             }
         });
 
