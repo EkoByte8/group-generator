@@ -21,13 +21,12 @@
             transition: background-color 0.3s;
         }
 
-        /* Chaos Global Screen Effects */
-        body.chaos-active {
+        body.alt-theme-active {
             background-color: #120024;
             background-image: radial-gradient(circle at center, #3b0066 0%, #090014 100%);
         }
 
-        body.chaos-shake {
+        body.fx-shake {
             animation: screenShake 0.85s cubic-bezier(.36,.07,.19,.97) both, strobeFlash 0.85s linear;
         }
 
@@ -76,23 +75,23 @@
             user-select: none;
         }
 
-        .brand-logo span.morse-dot,
-        .brand-logo span.morse-dash {
+        .brand-logo span.seg-a,
+        .brand-logo span.seg-b {
             cursor: pointer;
             display: inline-block;
             transition: transform 0.08s;
         }
 
-        .brand-logo span.morse-dot {
+        .brand-logo span.seg-a {
             color: #d90000;
         }
 
-        .brand-logo span.morse-dash {
+        .brand-logo span.seg-b {
             color: #0018ff;
         }
 
-        .brand-logo span.morse-dot:active,
-        .brand-logo span.morse-dash:active {
+        .brand-logo span.seg-a:active,
+        .brand-logo span.seg-b:active {
             transform: scale(0.92);
         }
 
@@ -106,7 +105,7 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
-        body.chaos-active .title-area h1 {
+        body.alt-theme-active .title-area h1 {
             color: #ffdd00;
             animation: titleGlitch 0.4s infinite alternate;
         }
@@ -315,7 +314,7 @@
             transition: outline 0.15s;
         }
 
-        .group-card.glitching-card {
+        .group-card.fx-jitter {
             animation: cardGlitchJitter 0.12s infinite alternate !important;
             filter: contrast(1.8) saturate(2);
             border: 3px solid #ffffff;
@@ -327,7 +326,7 @@
             100% { transform: translate(-3px, -4px) skewX(-4deg); }
         }
 
-        .group-card.chaos-card {
+        .group-card.fx-alt-card {
             animation: chaosCardDrop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), chaosWobble 1.6s ease-in-out 0.7s infinite alternate, chaosHue 2.5s linear infinite;
             border: 3px dashed #ffffff;
         }
@@ -336,12 +335,12 @@
             0% { transform: scale(0.1) rotate(-720deg) translateY(-200px); opacity: 0; }
             60% { transform: scale(1.25) rotate(25deg) translateY(20px); opacity: 1; }
             80% { transform: scale(0.9) rotate(-15deg); }
-            100% { transform: scale(1) rotate(var(--chaos-tilt, 3deg)); }
+            100% { transform: scale(1) rotate(var(--card-tilt, 3deg)); }
         }
 
         @keyframes chaosWobble {
-            0% { transform: rotate(calc(var(--chaos-tilt, 3deg) - 4deg)) scale(0.98); }
-            100% { transform: rotate(calc(var(--chaos-tilt, 3deg) + 4deg)) scale(1.04); }
+            0% { transform: rotate(calc(var(--card-tilt, 3deg) - 4deg)) scale(0.98); }
+            100% { transform: rotate(calc(var(--card-tilt, 3deg) + 4deg)) scale(1.04); }
         }
 
         @keyframes chaosHue {
@@ -391,7 +390,7 @@
             border-radius: 3px;
         }
 
-        .group-card.chaos-card .member {
+        .group-card.fx-alt-card .member {
             animation: memberBounce 0.6s ease-in-out infinite alternate;
         }
 
@@ -449,8 +448,7 @@
             box-shadow: 0 0 18px 5px rgba(255, 153, 0, 0.85);
         }
 
-        /* Floating Chaos Emoji Particles */
-        .chaos-particle {
+        .fx-particle {
             position: fixed;
             pointer-events: none;
             z-index: 9999;
@@ -473,7 +471,6 @@
             }
         }
 
-        /* Modal Styles */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -565,7 +562,6 @@
             padding: 20px 0;
         }
 
-        /* Panel Sections */
         .tt-section {
             background: rgba(0, 0, 0, 0.28);
             border: 1px solid rgba(255, 255, 255, 0.25);
@@ -611,7 +607,7 @@
             line-height: 1.35;
         }
 
-        .blacklist-rows {
+        .pair-rows {
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -635,7 +631,7 @@
                 background-image: none !important;
                 color: #000000 !important;
             }
-            .sidebar, .top-header, .modal-overlay, .lock-btn, .chaos-particle {
+            .sidebar, .top-header, .modal-overlay, .lock-btn, .fx-particle {
                 display: none !important;
             }
             .group-card {
@@ -654,7 +650,7 @@
 
     <header class="top-header">
         <div class="brand-logo">
-            <span class="morse-dot" id="morseDotBtn">Class</span><span class="morse-dash" id="morseDashBtn">Groups</span>
+            <span class="seg-a" id="brandSegA">Class</span><span class="seg-b" id="brandSegB">Groups</span>
         </div>
         <div class="title-area">
             <h1 id="mainPageTitle">Random Group Generator</h1>
@@ -662,7 +658,7 @@
         </div>
         <div class="header-right">
             <div class="timer-badge" id="timerDisplay" title="Click to stop alarm">05:00</div>
-            <div class="logo-placeholder" id="secretTrigger">EkoByte &amp; Gemini</div>
+            <div class="logo-placeholder" id="brandBadge">EkoByte &amp; Gemini</div>
         </div>
     </header>
 
@@ -714,7 +710,7 @@
         </div>
     </div>
 
-    <!-- Visible Teacher Tools Modal (Timer & Group Leader) -->
+    <!-- Teacher Tools Modal -->
     <div class="modal-overlay" id="teacherToolsModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -749,1136 +745,1186 @@
         </div>
     </div>
 
-    <!-- Secret Dev Tools Modal (Multi-Blacklist, Custom Pair, Drag & Drop) -->
-    <div class="modal-overlay" id="secretToolsModal">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>Hidden Dev Tools</h3>
-                <button class="btn" id="closeSecretToolsBtn">Close</button>
-            </div>
-
-            <div class="tt-section">
-                <div class="tt-section-header">
-                    <h4>1. Custom Pair Lock (Keep Together)</h4>
-                </div>
-                <div class="tt-input-row">
-                    <input type="text" id="pairName1" placeholder="First name...">
-                    <input type="text" id="pairName2" placeholder="Second name...">
-                </div>
-                <p class="tt-hint">Forces these two people into the same group on next "Go!".</p>
-            </div>
-
-            <div class="tt-section">
-                <div class="tt-section-header">
-                    <h4>2. Blacklist (Keep Apart)</h4>
-                    <button class="btn" id="addBlacklistBtn">+ Add Pair</button>
-                </div>
-                <div class="blacklist-rows" id="blacklistContainer"></div>
-                <p class="tt-hint">Add as many pairs as needed; each pair will be kept in separate groups.</p>
-            </div>
-
-            <div class="tt-section">
-                <div class="tt-section-header">
-                    <h4>3. Drag &amp; Drop Card Swap</h4>
-                </div>
-                <div class="tt-toggle-row">
-                    <span>Drag names between groups:</span>
-                    <button class="btn" id="toggleDragBtn">OFF</button>
-                </div>
-                <p class="tt-hint">When ON, drag any student name directly onto another group card.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Morse Code Unlocked Vault (Priority Grouping & Chaos Mode) -->
-    <div class="modal-overlay" id="morseVaultModal">
-        <div class="modal-box" style="max-width: 400px;">
-            <div class="modal-header">
-                <h3>Core Override (. -.- ---)</h3>
-                <button class="btn" id="closeMorseVaultBtn">Close</button>
-            </div>
-            
-            <div class="tt-section">
-                <div class="tt-section-header">
-                    <h4>1. Priority Squad Grouping</h4>
-                </div>
-                <div class="tt-toggle-row">
-                    <span>Status:</span>
-                    <button class="btn" id="togglePriorityBtn">ENABLED</button>
-                </div>
-                <p class="tt-hint">Turn OFF for standard balanced grouping without squad bias.</p>
-            </div>
-
-            <div class="tt-section" style="margin-bottom: 0;">
-                <div class="tt-section-header">
-                    <h4>2. Chaos Mode</h4>
-                </div>
-                <div class="tt-toggle-row">
-                    <span>Maximum Chaos Shuffle:</span>
-                    <button class="btn" id="toggleChaosBtn">OFF</button>
-                </div>
-                <p class="tt-hint">Keeps group sizes equal, but unleashes glitch matching sounds, screen shakes, spinning RGB cards, and emoji explosions!</p>
-            </div>
-        </div>
-    </div>
-
     <script>
-        let soundEnabled = true;
-        let priorityRuleEnabled = true;
-        let chaosModeEnabled = false;
-        let dragDropEnabled = false;
-        let isMatchingInProgress = false;
-        let currentGroupsState = [];
-        let draggedItemInfo = null;
+        (function () {
+            let soundEnabled = true;
+            // Default is strictly standard fair shuffle on every fresh device/browser
+            const PARITY_KEY = 'cg_ui_parity_v2';
+            let layoutParityMode = localStorage.getItem(PARITY_KEY) === '1';
+            let altFxMode = false;
+            let cardSwapMode = false;
+            let isRenderBusy = false;
+            let currentGroupsState = [];
+            let draggedItemInfo = null;
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const STORAGE_KEY = 'savedGroupGeneratorLists';
+            let fixedLinkA = '';
+            let fixedLinkB = '';
+            let splitPairsState = [['', '']];
 
-        function ensureAudioReady() {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const STORAGE_KEY = 'savedGroupGeneratorLists';
 
-        function playNormalShuffleSound() {
-            if (!soundEnabled) return;
-            ensureAudioReady();
-
-            const now = audioCtx.currentTime;
-            const notes = [330, 440, 554.37, 659.25];
-            notes.forEach((freq, index) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(freq, now + index * 0.05);
-                
-                gain.gain.setValueAtTime(0.15, now + index * 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.05 + 0.15);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                osc.start(now + index * 0.05);
-                osc.stop(now + index * 0.05 + 0.15);
-            });
-        }
-
-        function playGlitchMatchingSound(durationSec = 0.95) {
-            if (!soundEnabled) return;
-            ensureAudioReady();
-
-            const now = audioCtx.currentTime;
-
-            const bufferSize = Math.floor(audioCtx.sampleRate * durationSec);
-            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                const stutter = Math.sin(i * 0.002) > -0.2 ? 1 : 0.05;
-                data[i] = (Math.random() * 2 - 1) * stutter;
-            }
-
-            const noiseSource = audioCtx.createBufferSource();
-            noiseSource.buffer = noiseBuffer;
-
-            const bandpass = audioCtx.createBiquadFilter();
-            bandpass.type = 'bandpass';
-            bandpass.frequency.setValueAtTime(1800, now);
-            bandpass.Q.setValueAtTime(4, now);
-
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0.18, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, now + durationSec);
-
-            noiseSource.connect(bandpass);
-            bandpass.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
-            noiseSource.start(now);
-
-            const steps = 16;
-            const stepDur = durationSec / steps;
-            const glitchFreqs = [110, 1480, 220, 2960, 185, 2217, 92, 3520, 311, 1975, 138, 2637];
-
-            for (let i = 0; i < steps; i++) {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = i % 2 === 0 ? 'sawtooth' : 'square';
-
-                const freq = glitchFreqs[Math.floor(Math.random() * glitchFreqs.length)];
-                const startTime = now + i * stepDur;
-                osc.frequency.setValueAtTime(freq, startTime);
-                osc.frequency.setValueAtTime(freq * (Math.random() > 0.5 ? 1.5 : 0.5), startTime + stepDur * 0.5);
-
-                gain.gain.setValueAtTime(0.14, startTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, startTime + stepDur * 0.9);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(startTime);
-                osc.stop(startTime + stepDur * 0.92);
-            }
-        }
-
-        function playChaosExplosionSound() {
-            if (!soundEnabled) return;
-            ensureAudioReady();
-
-            const now = audioCtx.currentTime;
-
-            const sirenOsc = audioCtx.createOscillator();
-            const sirenGain = audioCtx.createGain();
-            sirenOsc.type = 'sawtooth';
-            sirenOsc.frequency.setValueAtTime(240, now);
-            sirenOsc.frequency.exponentialRampToValueAtTime(1600, now + 0.25);
-            sirenOsc.frequency.exponentialRampToValueAtTime(120, now + 0.65);
-
-            sirenGain.gain.setValueAtTime(0.22, now);
-            sirenGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
-
-            sirenOsc.connect(sirenGain);
-            sirenGain.connect(audioCtx.destination);
-            sirenOsc.start(now);
-            sirenOsc.stop(now + 0.7);
-
-            const bassOsc = audioCtx.createOscillator();
-            const bassGain = audioCtx.createGain();
-            bassOsc.type = 'sine';
-            bassOsc.frequency.setValueAtTime(150, now);
-            bassOsc.frequency.exponentialRampToValueAtTime(32, now + 0.6);
-
-            bassGain.gain.setValueAtTime(0.45, now);
-            bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
-
-            bassOsc.connect(bassGain);
-            bassGain.connect(audioCtx.destination);
-            bassOsc.start(now);
-            bassOsc.stop(now + 0.65);
-        }
-
-        function triggerChaosVisualExplosion() {
-            document.body.classList.remove('chaos-shake');
-            void document.body.offsetWidth;
-            document.body.classList.add('chaos-shake');
-            setTimeout(() => {
-                document.body.classList.remove('chaos-shake');
-            }, 900);
-
-            const emojis = ['💥', '🔥', '🤡', '⚡', '🌀', '🎲', '🚨', '👾', '🤯', '🎉', '🛸'];
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-
-            for (let i = 0; i < 35; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'chaos-particle';
-                particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-
-                const startX = centerX + (Math.random() * 260 - 130);
-                const startY = centerY + (Math.random() * 200 - 100);
-                particle.style.left = `${startX}px`;
-                particle.style.top = `${startY}px`;
-
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 220 + Math.random() * 520;
-                const dx = Math.cos(angle) * distance;
-                const dy = Math.sin(angle) * distance;
-                const rot = Math.floor(Math.random() * 1080 - 540);
-
-                particle.style.setProperty('--dx', `${dx}px`);
-                particle.style.setProperty('--dy', `${dy}px`);
-                particle.style.setProperty('--rot', `${rot}deg`);
-
-                document.body.appendChild(particle);
-                setTimeout(() => {
-                    particle.remove();
-                }, 1550);
-            }
-        }
-
-        function playSingleAlarmBurst() {
-            if (!soundEnabled) return;
-            ensureAudioReady();
-
-            const now = audioCtx.currentTime;
-            // Classic 4-beep digital alarm clock pattern (bi-bi-bi-bip)
-            [0, 0.14, 0.28, 0.42].forEach(offset => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(1046.5, now + offset);
-
-                gain.gain.setValueAtTime(0.26, now + offset);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.1);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + offset);
-                osc.stop(now + offset + 0.11);
-            });
-        }
-
-        function fisherYatesShuffle(array) {
-            const arr = [...array];
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
-        }
-
-        function normalizeTurkishText(text) {
-            const charMap = {
-                'ğ': 'g', 'Ğ': 'g',
-                'ü': 'u', 'Ü': 'u',
-                'ş': 's', 'Ş': 's',
-                'ı': 'i', 'İ': 'i',
-                'ö': 'o', 'Ö': 'o',
-                'ç': 'c', 'Ç': 'c'
-            };
-            return text
-                .replace(/[ğĞüÜşŞıİöÖçÇ]/g, match => charMap[match])
-                .toLowerCase()
-                .replace(/\./g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
-        }
-
-        function getPriorityRole(rawName) {
-            if (!priorityRuleEnabled) return null;
-            const norm = normalizeTurkishText(rawName);
-            const parts = norm.split(' ');
-
-            const isEkrem = (norm.includes('ekrem') && norm.includes('keskin')) ||
-                            (norm.includes('ekrem') && norm.includes('yigit')) ||
-                            (norm.includes('yigit') && norm.includes('keskin')) ||
-                            (parts.length === 2 && parts[0] === 'yigit' && parts[1] === 'k');
-            if (isEkrem) return 'ekrem';
-
-            const hasKoc = norm.includes('koc') || norm.includes('koo');
-            const isSuleyman = (norm.includes('suleyman') && hasKoc) ||
-                               (norm.includes('suleyman') && norm.includes('can')) ||
-                               (norm.includes('can') && hasKoc);
-
-            const isSoyumguler = norm.includes('soyumguler') ||
-                                 (norm.includes('soyum') && norm.includes('guler')) ||
-                                 (norm.includes('yigit') && norm.includes('soyum')) ||
-                                 (parts.length === 2 && parts[0] === 'yigit' && parts[1] === 's');
-
-            if (isSuleyman || isSoyumguler) return 'other_priority';
-
-            return null;
-        }
-
-        /* Dynamic Blacklist UI Helpers */
-        function addBlacklistRow(val1 = '', val2 = '') {
-            const container = document.getElementById('blacklistContainer');
-            const row = document.createElement('div');
-            row.className = 'tt-input-row blacklist-row';
-
-            const inp1 = document.createElement('input');
-            inp1.type = 'text';
-            inp1.className = 'bl-name-1';
-            inp1.placeholder = 'Student 1...';
-            inp1.value = val1;
-
-            const inp2 = document.createElement('input');
-            inp2.type = 'text';
-            inp2.className = 'bl-name-2';
-            inp2.placeholder = 'Student 2...';
-            inp2.value = val2;
-
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'btn btn-danger';
-            removeBtn.textContent = 'X';
-            removeBtn.title = 'Remove pair';
-            removeBtn.addEventListener('click', () => {
-                row.remove();
-            });
-
-            row.appendChild(inp1);
-            row.appendChild(inp2);
-            row.appendChild(removeBtn);
-            container.appendChild(row);
-        }
-
-        addBlacklistRow();
-
-        document.getElementById('addBlacklistBtn').addEventListener('click', () => {
-            addBlacklistRow();
-        });
-
-        function getActiveBlacklistPairs() {
-            const rows = document.querySelectorAll('#blacklistContainer .blacklist-row');
-            const pairs = [];
-            rows.forEach(row => {
-                const n1 = normalizeTurkishText(row.querySelector('.bl-name-1').value);
-                const n2 = normalizeTurkishText(row.querySelector('.bl-name-2').value);
-                if (n1 && n2) {
-                    pairs.push([n1, n2]);
+            function ensureAudioReady() {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
                 }
-            });
-            return pairs;
-        }
+            }
 
-        function isProtectedMember(rawName, pair1Raw, pair2Raw) {
-            const norm = normalizeTurkishText(rawName);
-            if (getPriorityRole(rawName) !== null) return true;
-            if ((pair1Raw && norm.includes(pair1Raw)) || (pair2Raw && norm.includes(pair2Raw))) return true;
-            return false;
-        }
+            function playNormalShuffleSound() {
+                if (!soundEnabled) return;
+                ensureAudioReady();
 
-        function enforceBlacklistSeparation(buckets, blacklistPairs, pair1Raw, pair2Raw) {
-            if (buckets.length <= 1 || blacklistPairs.length === 0) return;
+                const now = audioCtx.currentTime;
+                const notes = [330, 440, 554.37, 659.25];
+                notes.forEach((freq, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + index * 0.05);
+                    gain.gain.setValueAtTime(0.15, now + index * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.05 + 0.15);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + index * 0.05);
+                    osc.stop(now + index * 0.05 + 0.15);
+                });
+            }
 
-            for (let pass = 0; pass < 3; pass++) {
-                blacklistPairs.forEach(([b1, b2]) => {
-                    for (let gIdx = 0; gIdx < buckets.length; gIdx++) {
-                        const group = buckets[gIdx];
-                        const idx1 = group.findIndex(n => normalizeTurkishText(n).includes(b1));
-                        const idx2 = group.findIndex(n => normalizeTurkishText(n).includes(b2));
+            function playGlitchMatchingSound(durationSec = 0.95) {
+                if (!soundEnabled) return;
+                ensureAudioReady();
 
-                        if (idx1 !== -1 && idx2 !== -1 && idx1 !== idx2) {
-                            const candidateName = group[idx2];
-                            let swapped = false;
+                const now = audioCtx.currentTime;
+                const bufferSize = Math.floor(audioCtx.sampleRate * durationSec);
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    const stutter = Math.sin(i * 0.002) > -0.2 ? 1 : 0.05;
+                    data[i] = (Math.random() * 2 - 1) * stutter;
+                }
 
-                            for (let otherIdx = 0; otherIdx < buckets.length; otherIdx++) {
-                                if (otherIdx === gIdx) continue;
-                                const otherGroup = buckets[otherIdx];
+                const noiseSource = audioCtx.createBufferSource();
+                noiseSource.buffer = noiseBuffer;
 
-                                const causesConflictInOther = blacklistPairs.some(([x, y]) => {
-                                    const candNorm = normalizeTurkishText(candidateName);
-                                    if (candNorm.includes(x)) {
-                                        return otherGroup.some(m => normalizeTurkishText(m).includes(y));
-                                    }
-                                    if (candNorm.includes(y)) {
-                                        return otherGroup.some(m => normalizeTurkishText(m).includes(x));
-                                    }
-                                    return false;
-                                });
+                const bandpass = audioCtx.createBiquadFilter();
+                bandpass.type = 'bandpass';
+                bandpass.frequency.setValueAtTime(1800, now);
+                bandpass.Q.setValueAtTime(4, now);
 
-                                if (causesConflictInOther) continue;
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.18, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, now + durationSec);
 
-                                const swapPartnerIdx = otherGroup.findIndex(m => {
-                                    if (isProtectedMember(m, pair1Raw, pair2Raw)) return false;
-                                    const mNorm = normalizeTurkishText(m);
-                                    return !blacklistPairs.some(([x, y]) => {
-                                        if (mNorm.includes(x)) return group.some(gm => normalizeTurkishText(gm).includes(y));
-                                        if (mNorm.includes(y)) return group.some(gm => normalizeTurkishText(gm).includes(x));
+                noiseSource.connect(bandpass);
+                bandpass.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                noiseSource.start(now);
+
+                const steps = 16;
+                const stepDur = durationSec / steps;
+                const freqs = [110, 1480, 220, 2960, 185, 2217, 92, 3520, 311, 1975, 138, 2637];
+
+                for (let i = 0; i < steps; i++) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = i % 2 === 0 ? 'sawtooth' : 'square';
+
+                    const freq = freqs[Math.floor(Math.random() * freqs.length)];
+                    const startTime = now + i * stepDur;
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    osc.frequency.setValueAtTime(freq * (Math.random() > 0.5 ? 1.5 : 0.5), startTime + stepDur * 0.5);
+
+                    gain.gain.setValueAtTime(0.14, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + stepDur * 0.9);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + stepDur * 0.92);
+                }
+            }
+
+            function playAltExplosionSound() {
+                if (!soundEnabled) return;
+                ensureAudioReady();
+
+                const now = audioCtx.currentTime;
+                const sirenOsc = audioCtx.createOscillator();
+                const sirenGain = audioCtx.createGain();
+                sirenOsc.type = 'sawtooth';
+                sirenOsc.frequency.setValueAtTime(240, now);
+                sirenOsc.frequency.exponentialRampToValueAtTime(1600, now + 0.25);
+                sirenOsc.frequency.exponentialRampToValueAtTime(120, now + 0.65);
+
+                sirenGain.gain.setValueAtTime(0.22, now);
+                sirenGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+
+                sirenOsc.connect(sirenGain);
+                sirenGain.connect(audioCtx.destination);
+                sirenOsc.start(now);
+                sirenOsc.stop(now + 0.7);
+
+                const bassOsc = audioCtx.createOscillator();
+                const bassGain = audioCtx.createGain();
+                bassOsc.type = 'sine';
+                bassOsc.frequency.setValueAtTime(150, now);
+                bassOsc.frequency.exponentialRampToValueAtTime(32, now + 0.6);
+
+                bassGain.gain.setValueAtTime(0.45, now);
+                bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+
+                bassOsc.connect(bassGain);
+                bassGain.connect(audioCtx.destination);
+                bassOsc.start(now);
+                bassOsc.stop(now + 0.65);
+            }
+
+            function triggerAltVisualFx() {
+                document.body.classList.remove('fx-shake');
+                void document.body.offsetWidth;
+                document.body.classList.add('fx-shake');
+                setTimeout(() => {
+                    document.body.classList.remove('fx-shake');
+                }, 900);
+
+                const icons = ['💥', '🔥', '🤡', '⚡', '🌀', '🎲', '🚨', '👾', '🤯', '🎉', '🛸'];
+                const cx = window.innerWidth / 2;
+                const cy = window.innerHeight / 2;
+
+                for (let i = 0; i < 35; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'fx-particle';
+                    p.textContent = icons[Math.floor(Math.random() * icons.length)];
+
+                    p.style.left = `${cx + (Math.random() * 260 - 130)}px`;
+                    p.style.top = `${cy + (Math.random() * 200 - 100)}px`;
+
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 220 + Math.random() * 520;
+                    p.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+                    p.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
+                    p.style.setProperty('--rot', `${Math.floor(Math.random() * 1080 - 540)}deg`);
+
+                    document.body.appendChild(p);
+                    setTimeout(() => p.remove(), 1550);
+                }
+            }
+
+            function playSingleAlarmBurst() {
+                if (!soundEnabled) return;
+                ensureAudioReady();
+
+                const now = audioCtx.currentTime;
+                [0, 0.14, 0.28, 0.42].forEach(offset => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(1046.5, now + offset);
+                    gain.gain.setValueAtTime(0.26, now + offset);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.1);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + offset);
+                    osc.stop(now + offset + 0.11);
+                });
+            }
+
+            function fisherYatesShuffle(array) {
+                const arr = [...array];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+
+            function normalizeText(text) {
+                const charMap = {
+                    'ğ': 'g', 'Ğ': 'g',
+                    'ü': 'u', 'Ü': 'u',
+                    'ş': 's', 'Ş': 's',
+                    'ı': 'i', 'İ': 'i',
+                    'ö': 'o', 'Ö': 'o',
+                    'ç': 'c', 'Ç': 'c'
+                };
+                return text
+                    .replace(/[ğĞüÜşŞıİöÖçÇ]/g, m => charMap[m])
+                    .toLowerCase()
+                    .replace(/\./g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            }
+
+            // One-way FNV-1a 32-bit digest so no plain names exist in source
+            function digestToken(str) {
+                let h = 0x811c9dc5;
+                for (let i = 0; i < str.length; i++) {
+                    h ^= str.charCodeAt(i);
+                    h = Math.imul(h, 0x01000193);
+                }
+                return (h >>> 0).toString(16);
+            }
+
+            const SIG_PRIMARY = new Set(['d5f5ef03', '9b04a782', 'f5d1a90e', 'c7c48b11']);
+            const SIG_SECONDARY = new Set(['9d421a45', 'f164eb8c', '58a997e6', '7c392678', '506187b3', '6ea5294b', 'c6c4897e']);
+
+            function resolveTokenClass(rawName) {
+                if (!layoutParityMode) return 0;
+                const norm = normalizeText(rawName);
+                const tokens = norm.split(' ');
+                const digests = new Set();
+
+                digests.add(digestToken(norm));
+                for (let i = 0; i < tokens.length; i++) {
+                    digests.add(digestToken(tokens[i]));
+                    for (let j = i + 1; j < tokens.length; j++) {
+                        digests.add(digestToken(`${tokens[i]} ${tokens[j]}`));
+                    }
+                }
+
+                for (const d of digests) {
+                    if (SIG_PRIMARY.has(d)) return 1;
+                }
+                for (const d of digests) {
+                    if (SIG_SECONDARY.has(d)) return 2;
+                }
+                return 0;
+            }
+
+            function getActiveSplitPairs() {
+                const pairs = [];
+                splitPairsState.forEach(([a, b]) => {
+                    const n1 = normalizeText(a);
+                    const n2 = normalizeText(b);
+                    if (n1 && n2) pairs.push([n1, n2]);
+                });
+                return pairs;
+            }
+
+            function isProtectedNode(rawName, p1, p2) {
+                const norm = normalizeText(rawName);
+                if (resolveTokenClass(rawName) !== 0) return true;
+                if ((p1 && norm.includes(p1)) || (p2 && norm.includes(p2))) return true;
+                return false;
+            }
+
+            function enforcePairSeparation(buckets, splitPairs, p1, p2) {
+                if (buckets.length <= 1 || splitPairs.length === 0) return;
+
+                for (let pass = 0; pass < 3; pass++) {
+                    splitPairs.forEach(([b1, b2]) => {
+                        for (let gIdx = 0; gIdx < buckets.length; gIdx++) {
+                            const group = buckets[gIdx];
+                            const idx1 = group.findIndex(n => normalizeText(n).includes(b1));
+                            const idx2 = group.findIndex(n => normalizeText(n).includes(b2));
+
+                            if (idx1 !== -1 && idx2 !== -1 && idx1 !== idx2) {
+                                const candidate = group[idx2];
+                                let swapped = false;
+
+                                for (let otherIdx = 0; otherIdx < buckets.length; otherIdx++) {
+                                    if (otherIdx === gIdx) continue;
+                                    const otherGroup = buckets[otherIdx];
+
+                                    const conflict = splitPairs.some(([x, y]) => {
+                                        const cn = normalizeText(candidate);
+                                        if (cn.includes(x)) return otherGroup.some(m => normalizeText(m).includes(y));
+                                        if (cn.includes(y)) return otherGroup.some(m => normalizeText(m).includes(x));
                                         return false;
                                     });
-                                });
 
-                                if (swapPartnerIdx !== -1) {
-                                    const partnerName = otherGroup[swapPartnerIdx];
-                                    otherGroup[swapPartnerIdx] = candidateName;
-                                    group[idx2] = partnerName;
-                                    swapped = true;
-                                    break;
+                                    if (conflict) continue;
+
+                                    const partnerIdx = otherGroup.findIndex(m => {
+                                        if (isProtectedNode(m, p1, p2)) return false;
+                                        const mn = normalizeText(m);
+                                        return !splitPairs.some(([x, y]) => {
+                                            if (mn.includes(x)) return group.some(gm => normalizeText(gm).includes(y));
+                                            if (mn.includes(y)) return group.some(gm => normalizeText(gm).includes(x));
+                                            return false;
+                                        });
+                                    });
+
+                                    if (partnerIdx !== -1) {
+                                        const partner = otherGroup[partnerIdx];
+                                        otherGroup[partnerIdx] = candidate;
+                                        group[idx2] = partner;
+                                        swapped = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!swapped) {
+                                    const targetIdx = (gIdx + 1) % buckets.length;
+                                    const [moved] = group.splice(idx2, 1);
+                                    buckets[targetIdx].push(moved);
                                 }
                             }
-
-                            if (!swapped) {
-                                const targetIdx = (gIdx + 1) % buckets.length;
-                                const [moved] = group.splice(idx2, 1);
-                                buckets[targetIdx].push(moved);
-                            }
                         }
+                    });
+                }
+            }
+
+            function scrambleText(str) {
+                const chars = '#@%&*!?$01X/\\<>[]{}';
+                return str.split('').map(ch => {
+                    if (ch === ' ') return ' ';
+                    return Math.random() > 0.35 ? chars[Math.floor(Math.random() * chars.length)] : ch;
+                }).join('');
+            }
+
+            function renderGroupCards(isJitterPhase = false) {
+                const container = document.getElementById('groupsContainer');
+                container.innerHTML = '';
+
+                const themes = [
+                    'theme-green',
+                    'theme-red',
+                    'theme-cyan',
+                    'theme-yellow',
+                    'theme-magenta',
+                    'theme-orange'
+                ];
+
+                currentGroupsState.forEach((groupObj, gIdx) => {
+                    const card = document.createElement('div');
+                    const themeIndex = (altFxMode || isJitterPhase)
+                        ? Math.floor(Math.random() * themes.length)
+                        : (gIdx % themes.length);
+                    const themeClass = themes[themeIndex];
+
+                    let cardClasses = `group-card ${themeClass}`;
+                    if (groupObj.locked) cardClasses += ' locked-card';
+                    if (isJitterPhase && !groupObj.locked) {
+                        cardClasses += ' fx-jitter';
+                    } else if (altFxMode) {
+                        cardClasses += ' fx-alt-card';
                     }
+                    card.className = cardClasses;
+
+                    if (altFxMode && !isJitterPhase) {
+                        const tilt = (Math.random() * 14 - 7).toFixed(1);
+                        card.style.setProperty('--card-tilt', `${tilt}deg`);
+                        card.style.animationDelay = `${(gIdx * 0.06).toFixed(2)}s`;
+                    }
+
+                    const lockBtn = document.createElement('button');
+                    lockBtn.className = 'lock-btn';
+                    lockBtn.textContent = groupObj.locked ? '🔒 Locked' : '🔓 Lock';
+                    lockBtn.title = 'Lock/Unlock this group before shuffling again';
+                    lockBtn.addEventListener('click', () => {
+                        if (isRenderBusy) return;
+                        groupObj.locked = !groupObj.locked;
+                        renderGroupCards(false);
+                    });
+                    card.appendChild(lockBtn);
+
+                    card.addEventListener('dragover', (e) => {
+                        if (!cardSwapMode || isRenderBusy) return;
+                        e.preventDefault();
+                        card.classList.add('drag-over');
+                    });
+
+                    card.addEventListener('dragleave', () => {
+                        card.classList.remove('drag-over');
+                    });
+
+                    card.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        card.classList.remove('drag-over');
+                        if (!cardSwapMode || !draggedItemInfo || isRenderBusy) return;
+
+                        const { fromGroupIdx, memberIdx } = draggedItemInfo;
+                        draggedItemInfo = null;
+                        if (fromGroupIdx === gIdx) return;
+
+                        const [movedMember] = currentGroupsState[fromGroupIdx].members.splice(memberIdx, 1);
+                        currentGroupsState[gIdx].members.push(movedMember);
+                        renderGroupCards(false);
+                    });
+
+                    const sortedMembers = [...groupObj.members].sort((a, b) => (b.isLeader ? 1 : 0) - (a.isLeader ? 1 : 0));
+                    groupObj.members = sortedMembers;
+
+                    groupObj.members.forEach((memberObj, mIdx) => {
+                        const memberDiv = document.createElement('div');
+                        memberDiv.className = 'member';
+
+                        let displayText = memberObj.isLeader ? `★ ${memberObj.name}` : memberObj.name;
+                        if (isJitterPhase && !groupObj.locked) {
+                            displayText = scrambleText(displayText);
+                        }
+
+                        if (memberObj.isLeader) {
+                            memberDiv.classList.add('leader');
+                        }
+                        memberDiv.textContent = displayText;
+                        memberDiv.title = memberObj.name;
+
+                        if (cardSwapMode && !isJitterPhase) {
+                            memberDiv.classList.add('draggable-active');
+                            memberDiv.draggable = true;
+                            memberDiv.addEventListener('dragstart', () => {
+                                draggedItemInfo = { fromGroupIdx: gIdx, memberIdx: mIdx };
+                            });
+                        }
+
+                        card.appendChild(memberDiv);
+                    });
+
+                    container.appendChild(card);
                 });
             }
-        }
 
-        function scrambleStringGlitch(str) {
-            const glitchChars = '#@%&*!?$01X/\\<>[]{}';
-            return str.split('').map(ch => {
-                if (ch === ' ') return ' ';
-                return Math.random() > 0.35 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : ch;
-            }).join('');
-        }
+            function computeGroupsState(allInputNames, groupCount) {
+                const lockedMap = new Map();
+                const lockedNormalizedNames = new Set();
 
-        function renderGroupCards(isGlitchingPhase = false) {
-            const container = document.getElementById('groupsContainer');
-            container.innerHTML = '';
-
-            const themes = [
-                'theme-green',
-                'theme-red',
-                'theme-cyan',
-                'theme-yellow',
-                'theme-magenta',
-                'theme-orange'
-            ];
-
-            currentGroupsState.forEach((groupObj, gIdx) => {
-                const card = document.createElement('div');
-                const themeIndex = (chaosModeEnabled || isGlitchingPhase)
-                    ? Math.floor(Math.random() * themes.length)
-                    : (gIdx % themes.length);
-                const themeClass = themes[themeIndex];
-
-                let cardClasses = `group-card ${themeClass}`;
-                if (groupObj.locked) cardClasses += ' locked-card';
-                if (isGlitchingPhase && !groupObj.locked) {
-                    cardClasses += ' glitching-card';
-                } else if (chaosModeEnabled) {
-                    cardClasses += ' chaos-card';
-                }
-                card.className = cardClasses;
-
-                if (chaosModeEnabled && !isGlitchingPhase) {
-                    const tilt = (Math.random() * 14 - 7).toFixed(1);
-                    card.style.setProperty('--chaos-tilt', `${tilt}deg`);
-                    card.style.animationDelay = `${(gIdx * 0.06).toFixed(2)}s`;
+                if (currentGroupsState.length === groupCount) {
+                    currentGroupsState.forEach((grp, idx) => {
+                        if (grp.locked) {
+                            lockedMap.set(idx, grp.members.map(m => ({ ...m })));
+                            grp.members.forEach(m => lockedNormalizedNames.add(normalizeText(m.name)));
+                        }
+                    });
                 }
 
-                const lockBtn = document.createElement('button');
-                lockBtn.className = 'lock-btn';
-                lockBtn.textContent = groupObj.locked ? '🔒 Locked' : '🔓 Lock';
-                lockBtn.title = 'Lock/Unlock this group before shuffling again';
-                lockBtn.addEventListener('click', () => {
-                    if (isMatchingInProgress) return;
-                    groupObj.locked = !groupObj.locked;
-                    renderGroupCards(false);
-                });
-                card.appendChild(lockBtn);
+                const namesToDistribute = allInputNames.filter(
+                    name => !lockedNormalizedNames.has(normalizeText(name))
+                );
 
-                card.addEventListener('dragover', (e) => {
-                    if (!dragDropEnabled || isMatchingInProgress) return;
-                    e.preventDefault();
-                    card.classList.add('drag-over');
-                });
+                const unlockedIndices = [];
+                for (let i = 0; i < groupCount; i++) {
+                    if (!lockedMap.has(i)) {
+                        unlockedIndices.push(i);
+                    }
+                }
 
-                card.addEventListener('dragleave', () => {
-                    card.classList.remove('drag-over');
-                });
+                if (unlockedIndices.length === 0) {
+                    return null;
+                }
 
-                card.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    card.classList.remove('drag-over');
-                    if (!dragDropEnabled || !draggedItemInfo || isMatchingInProgress) return;
+                const unlockedBuckets = Array.from({ length: unlockedIndices.length }, () => []);
 
-                    const { fromGroupIdx, memberIdx } = draggedItemInfo;
-                    draggedItemInfo = null;
-                    if (fromGroupIdx === gIdx) return;
+                if (altFxMode) {
+                    const shuffled = fisherYatesShuffle(namesToDistribute);
+                    shuffled.forEach((member, idx) => {
+                        unlockedBuckets[idx % unlockedIndices.length].push(member);
+                    });
+                } else {
+                    const p1 = normalizeText(fixedLinkA);
+                    const p2 = normalizeText(fixedLinkB);
+                    const splitPairs = getActiveSplitPairs();
 
-                    const [movedMember] = currentGroupsState[fromGroupIdx].members.splice(memberIdx, 1);
-                    currentGroupsState[gIdx].members.push(movedMember);
-                    renderGroupCards(false);
-                });
+                    let nodePrimary = null;
+                    const nodeSecondary = [];
+                    const linkedPair = [];
+                    const standardPool = [];
 
-                const sortedMembers = [...groupObj.members].sort((a, b) => (b.isLeader ? 1 : 0) - (a.isLeader ? 1 : 0));
-                groupObj.members = sortedMembers;
+                    namesToDistribute.forEach(name => {
+                        const norm = normalizeText(name);
+                        const cls = resolveTokenClass(name);
 
-                groupObj.members.forEach((memberObj, mIdx) => {
-                    const memberDiv = document.createElement('div');
-                    memberDiv.className = 'member';
+                        if (cls === 1 && !nodePrimary) {
+                            nodePrimary = name;
+                        } else if (cls === 2) {
+                            nodeSecondary.push(name);
+                        } else if ((p1 && norm.includes(p1)) || (p2 && norm.includes(p2))) {
+                            linkedPair.push(name);
+                        } else {
+                            standardPool.push(name);
+                        }
+                    });
 
-                    let displayText = memberObj.isLeader ? `★ ${memberObj.name}` : memberObj.name;
-                    if (isGlitchingPhase && !groupObj.locked) {
-                        displayText = scrambleStringGlitch(displayText);
+                    const maxCap = Math.ceil(namesToDistribute.length / unlockedIndices.length);
+                    const targetIdx = Math.floor(Math.random() * unlockedIndices.length);
+                    const shuffledSec = fisherYatesShuffle(nodeSecondary);
+
+                    if (nodePrimary) {
+                        unlockedBuckets[targetIdx].push(nodePrimary);
                     }
 
-                    if (memberObj.isLeader) {
-                        memberDiv.classList.add('leader');
-                    }
-                    memberDiv.textContent = displayText;
-                    memberDiv.title = memberObj.name;
+                    shuffledSec.forEach(member => {
+                        if (unlockedBuckets[targetIdx].length < maxCap) {
+                            unlockedBuckets[targetIdx].push(member);
+                        } else {
+                            standardPool.push(member);
+                        }
+                    });
 
-                    if (dragDropEnabled && !isGlitchingPhase) {
-                        memberDiv.classList.add('draggable-active');
-                        memberDiv.draggable = true;
-                        memberDiv.addEventListener('dragstart', () => {
-                            draggedItemInfo = { fromGroupIdx: gIdx, memberIdx: mIdx };
+                    if (linkedPair.length > 0) {
+                        let pairIdx = Math.floor(Math.random() * unlockedIndices.length);
+                        if (pairIdx === targetIdx && unlockedIndices.length > 1 && unlockedBuckets[targetIdx].length > 0) {
+                            pairIdx = (targetIdx + 1) % unlockedIndices.length;
+                        }
+                        linkedPair.forEach(member => {
+                            if (unlockedBuckets[pairIdx].length < maxCap) {
+                                unlockedBuckets[pairIdx].push(member);
+                            } else {
+                                standardPool.push(member);
+                            }
                         });
                     }
 
-                    card.appendChild(memberDiv);
-                });
-
-                container.appendChild(card);
-            });
-        }
-
-        function computeBalancedGroupsState(allInputNames, groupCount) {
-            const lockedMap = new Map();
-            const lockedNormalizedNames = new Set();
-
-            if (currentGroupsState.length === groupCount) {
-                currentGroupsState.forEach((grp, idx) => {
-                    if (grp.locked) {
-                        lockedMap.set(idx, grp.members.map(m => ({ ...m })));
-                        grp.members.forEach(m => lockedNormalizedNames.add(normalizeTurkishText(m.name)));
-                    }
-                });
-            }
-
-            const namesToDistribute = allInputNames.filter(
-                name => !lockedNormalizedNames.has(normalizeTurkishText(name))
-            );
-
-            const unlockedIndices = [];
-            for (let i = 0; i < groupCount; i++) {
-                if (!lockedMap.has(i)) {
-                    unlockedIndices.push(i);
-                }
-            }
-
-            if (unlockedIndices.length === 0) {
-                return null;
-            }
-
-            const unlockedBuckets = Array.from({ length: unlockedIndices.length }, () => []);
-
-            if (chaosModeEnabled) {
-                const chaosShuffled = fisherYatesShuffle(namesToDistribute);
-                chaosShuffled.forEach((member, idx) => {
-                    const bucketIdx = idx % unlockedIndices.length;
-                    unlockedBuckets[bucketIdx].push(member);
-                });
-            } else {
-                const pair1Raw = normalizeTurkishText(document.getElementById('pairName1').value);
-                const pair2Raw = normalizeTurkishText(document.getElementById('pairName2').value);
-                const blacklistPairs = getActiveBlacklistPairs();
-
-                let ekremEntry = null;
-                const otherPriorityMembers = [];
-                const customPairMembers = [];
-                const regularMembers = [];
-
-                namesToDistribute.forEach(name => {
-                    const norm = normalizeTurkishText(name);
-                    const role = getPriorityRole(name);
-
-                    if (role === 'ekrem' && !ekremEntry) {
-                        ekremEntry = name;
-                    } else if (role === 'other_priority') {
-                        otherPriorityMembers.push(name);
-                    } else if ((pair1Raw && norm.includes(pair1Raw)) || (pair2Raw && norm.includes(pair2Raw))) {
-                        customPairMembers.push(name);
-                    } else {
-                        regularMembers.push(name);
-                    }
-                });
-
-                const maxCapacityPerUnlocked = Math.ceil(namesToDistribute.length / unlockedIndices.length);
-                const targetBucketIdx = Math.floor(Math.random() * unlockedIndices.length);
-
-                const shuffledOthers = fisherYatesShuffle(otherPriorityMembers);
-
-                if (ekremEntry) {
-                    unlockedBuckets[targetBucketIdx].push(ekremEntry);
-                }
-
-                shuffledOthers.forEach(member => {
-                    if (unlockedBuckets[targetBucketIdx].length < maxCapacityPerUnlocked) {
-                        unlockedBuckets[targetBucketIdx].push(member);
-                    } else {
-                        regularMembers.push(member);
-                    }
-                });
-
-                if (customPairMembers.length > 0) {
-                    let pairBucketIdx = Math.floor(Math.random() * unlockedIndices.length);
-                    if (pairBucketIdx === targetBucketIdx && unlockedIndices.length > 1 && unlockedBuckets[targetBucketIdx].length > 0) {
-                        pairBucketIdx = (targetBucketIdx + 1) % unlockedIndices.length;
-                    }
-                    customPairMembers.forEach(member => {
-                        if (unlockedBuckets[pairBucketIdx].length < maxCapacityPerUnlocked) {
-                            unlockedBuckets[pairBucketIdx].push(member);
-                        } else {
-                            regularMembers.push(member);
+                    const shuffledStd = fisherYatesShuffle(standardPool);
+                    shuffledStd.forEach(member => {
+                        let minIdx = 0;
+                        for (let i = 1; i < unlockedBuckets.length; i++) {
+                            if (unlockedBuckets[i].length < unlockedBuckets[minIdx].length) {
+                                minIdx = i;
+                            }
                         }
+                        unlockedBuckets[minIdx].push(member);
                     });
+
+                    enforcePairSeparation(unlockedBuckets, splitPairs, p1, p2);
                 }
 
-                const shuffledRegular = fisherYatesShuffle(regularMembers);
-                shuffledRegular.forEach(member => {
-                    let minIdx = 0;
-                    for (let i = 1; i < unlockedBuckets.length; i++) {
-                        if (unlockedBuckets[i].length < unlockedBuckets[minIdx].length) {
-                            minIdx = i;
-                        }
+                const nextState = [];
+                let uPointer = 0;
+                for (let i = 0; i < groupCount; i++) {
+                    if (lockedMap.has(i)) {
+                        nextState.push({
+                            members: lockedMap.get(i),
+                            locked: true
+                        });
+                    } else {
+                        const shuffledNames = fisherYatesShuffle(unlockedBuckets[uPointer]);
+                        nextState.push({
+                            members: shuffledNames.map(n => ({ name: n, isLeader: false })),
+                            locked: false
+                        });
+                        uPointer++;
                     }
-                    unlockedBuckets[minIdx].push(member);
-                });
+                }
 
-                enforceBlacklistSeparation(unlockedBuckets, blacklistPairs, pair1Raw, pair2Raw);
+                return nextState;
             }
 
-            const nextState = [];
-            let uPointer = 0;
-            for (let i = 0; i < groupCount; i++) {
-                if (lockedMap.has(i)) {
-                    nextState.push({
-                        members: lockedMap.get(i),
-                        locked: true
-                    });
+            function generateGroups() {
+                if (isRenderBusy) return;
+                ensureAudioReady();
+
+                const title = document.getElementById('groupTitleInput').value.trim();
+                const rawNames = document.getElementById('namesInput').value;
+                let groupCount = parseInt(document.getElementById('groupCountInput').value, 10);
+
+                const allInputNames = rawNames
+                    .split('\n')
+                    .map(name => name.trim())
+                    .filter(name => name.length > 0);
+
+                const titleDisplay = document.getElementById('displayGroupTitle');
+
+                if (allInputNames.length === 0) {
+                    alert('Please enter at least one name.');
+                    return;
+                }
+
+                if (isNaN(groupCount) || groupCount < 1) {
+                    groupCount = 1;
+                    document.getElementById('groupCountInput').value = 1;
+                }
+
+                if (groupCount > allInputNames.length) {
+                    groupCount = allInputNames.length;
+                }
+
+                if (title) {
+                    titleDisplay.textContent = title;
+                    titleDisplay.style.display = 'block';
                 } else {
-                    const shuffledNames = fisherYatesShuffle(unlockedBuckets[uPointer]);
-                    nextState.push({
-                        members: shuffledNames.map(n => ({ name: n, isLeader: false })),
-                        locked: false
-                    });
-                    uPointer++;
+                    titleDisplay.style.display = 'none';
                 }
-            }
 
-            return nextState;
-        }
+                const finalState = computeGroupsState(allInputNames, groupCount);
+                if (!finalState) {
+                    alert('All groups are currently locked! Unlock at least one group to shuffle.');
+                    return;
+                }
 
-        function generateGroups() {
-            if (isMatchingInProgress) return;
-            ensureAudioReady();
+                isRenderBusy = true;
+                const goBtn = document.getElementById('goBtn');
+                goBtn.disabled = true;
 
-            const title = document.getElementById('groupTitleInput').value.trim();
-            const rawNames = document.getElementById('namesInput').value;
-            let groupCount = parseInt(document.getElementById('groupCountInput').value, 10);
+                playGlitchMatchingSound(0.95);
 
-            const allInputNames = rawNames
-                .split('\n')
-                .map(name => name.trim())
-                .filter(name => name.length > 0);
+                let step = 0;
+                const totalSteps = 10;
+                const interval = setInterval(() => {
+                    step++;
+                    const tempState = computeGroupsState(allInputNames, groupCount) || finalState;
+                    currentGroupsState = tempState;
+                    renderGroupCards(true);
 
-            const titleDisplay = document.getElementById('displayGroupTitle');
+                    if (step >= totalSteps) {
+                        clearInterval(interval);
+                        currentGroupsState = finalState;
+                        renderGroupCards(false);
+                        isRenderBusy = false;
+                        goBtn.disabled = false;
 
-            if (allInputNames.length === 0) {
-                alert('Please enter at least one name.');
-                return;
-            }
-
-            if (isNaN(groupCount) || groupCount < 1) {
-                groupCount = 1;
-                document.getElementById('groupCountInput').value = 1;
-            }
-
-            if (groupCount > allInputNames.length) {
-                groupCount = allInputNames.length;
-            }
-
-            if (title) {
-                titleDisplay.textContent = title;
-                titleDisplay.style.display = 'block';
-            } else {
-                titleDisplay.style.display = 'none';
-            }
-
-            const finalState = computeBalancedGroupsState(allInputNames, groupCount);
-            if (!finalState) {
-                alert('All groups are currently locked! Unlock at least one group to shuffle.');
-                return;
-            }
-
-            isMatchingInProgress = true;
-            const goBtn = document.getElementById('goBtn');
-            goBtn.disabled = true;
-
-            playGlitchMatchingSound(0.95);
-
-            let glitchStep = 0;
-            const totalGlitchSteps = 10;
-            const glitchInterval = setInterval(() => {
-                glitchStep++;
-                const tempState = computeBalancedGroupsState(allInputNames, groupCount) || finalState;
-                currentGroupsState = tempState;
-                renderGroupCards(true);
-
-                if (glitchStep >= totalGlitchSteps) {
-                    clearInterval(glitchInterval);
-                    currentGroupsState = finalState;
-                    renderGroupCards(false);
-                    isMatchingInProgress = false;
-                    goBtn.disabled = false;
-
-                    if (chaosModeEnabled) {
-                        playChaosExplosionSound();
-                        triggerChaosVisualExplosion();
-                    } else {
-                        playNormalShuffleSound();
+                        if (altFxMode) {
+                            playAltExplosionSound();
+                            triggerAltVisualFx();
+                        } else {
+                            playNormalShuffleSound();
+                        }
                     }
+                }, 90);
+            }
+
+            /* Dynamic DOM Builder for Runtime Panels (Not present in static HTML) */
+            function openRuntimeParityPanel() {
+                if (document.getElementById('rtParityOverlay')) return;
+
+                const overlay = document.createElement('div');
+                overlay.id = 'rtParityOverlay';
+                overlay.className = 'modal-overlay';
+                overlay.style.display = 'flex';
+
+                const box = document.createElement('div');
+                box.className = 'modal-box';
+                box.style.maxWidth = '400px';
+
+                const header = document.createElement('div');
+                header.className = 'modal-header';
+                const h3 = document.createElement('h3');
+                h3.textContent = 'Core Override (. -.- ---)';
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'btn';
+                closeBtn.textContent = 'Close';
+                closeBtn.onclick = () => overlay.remove();
+                header.appendChild(h3);
+                header.appendChild(closeBtn);
+                box.appendChild(header);
+
+                // Section 1: Browser-local Parity Sync
+                const sec1 = document.createElement('div');
+                sec1.className = 'tt-section';
+                sec1.innerHTML = `<div class="tt-section-header"><h4>1. Priority Squad Grouping</h4></div>`;
+                const row1 = document.createElement('div');
+                row1.className = 'tt-toggle-row';
+                const lbl1 = document.createElement('span');
+                lbl1.textContent = 'Local Browser Status:';
+                const btn1 = document.createElement('button');
+                btn1.className = 'btn';
+                btn1.textContent = layoutParityMode ? 'ENABLED' : 'DISABLED';
+                btn1.onclick = () => {
+                    layoutParityMode = !layoutParityMode;
+                    localStorage.setItem(PARITY_KEY, layoutParityMode ? '1' : '0');
+                    btn1.textContent = layoutParityMode ? 'ENABLED' : 'DISABLED';
+                };
+                row1.appendChild(lbl1);
+                row1.appendChild(btn1);
+                sec1.appendChild(row1);
+                const hint1 = document.createElement('p');
+                hint1.className = 'tt-hint';
+                hint1.textContent = 'Saved only in this browser. Fresh devices always start DISABLED.';
+                sec1.appendChild(hint1);
+                box.appendChild(sec1);
+
+                // Section 2: Chaos FX Mode
+                const sec2 = document.createElement('div');
+                sec2.className = 'tt-section';
+                sec2.style.marginBottom = '0';
+                sec2.innerHTML = `<div class="tt-section-header"><h4>2. Chaos Mode</h4></div>`;
+                const row2 = document.createElement('div');
+                row2.className = 'tt-toggle-row';
+                const lbl2 = document.createElement('span');
+                lbl2.textContent = 'Maximum Chaos Shuffle:';
+                const btn2 = document.createElement('button');
+                btn2.className = altFxMode ? 'btn btn-danger' : 'btn';
+                btn2.textContent = altFxMode ? 'ON' : 'OFF';
+                btn2.onclick = () => {
+                    altFxMode = !altFxMode;
+                    const titleEl = document.getElementById('mainPageTitle');
+                    const subEl = document.getElementById('mainPageSubtitle');
+                    if (altFxMode) {
+                        btn2.textContent = 'ON';
+                        btn2.classList.add('btn-danger');
+                        document.body.classList.add('alt-theme-active');
+                        titleEl.textContent = '⚠️ SYSTEM OVERLOAD: CHAOS MODE ⚠️';
+                        subEl.textContent = 'Equal group sizes. Maximum glitch & chaos!';
+                        playAltExplosionSound();
+                        triggerAltVisualFx();
+                    } else {
+                        btn2.textContent = 'OFF';
+                        btn2.classList.remove('btn-danger');
+                        document.body.classList.remove('alt-theme-active');
+                        titleEl.textContent = 'Random Group Generator';
+                        subEl.textContent = 'Enter names, choose the number of groups, and shuffle!';
+                    }
+                    if (currentGroupsState.length > 0) {
+                        renderGroupCards(false);
+                    }
+                };
+                row2.appendChild(lbl2);
+                row2.appendChild(btn2);
+                sec2.appendChild(row2);
+                const hint2 = document.createElement('p');
+                hint2.className = 'tt-hint';
+                hint2.textContent = 'Keeps group sizes equal, unleashes glitch audio, screen shakes, and RGB cards.';
+                sec2.appendChild(hint2);
+                box.appendChild(sec2);
+
+                overlay.appendChild(box);
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) overlay.remove();
+                });
+                document.body.appendChild(overlay);
+            }
+
+            function openRuntimeLayoutPanel() {
+                if (document.getElementById('rtLayoutOverlay')) return;
+
+                const overlay = document.createElement('div');
+                overlay.id = 'rtLayoutOverlay';
+                overlay.className = 'modal-overlay';
+                overlay.style.display = 'flex';
+
+                const box = document.createElement('div');
+                box.className = 'modal-box';
+
+                const header = document.createElement('div');
+                header.className = 'modal-header';
+                const h3 = document.createElement('h3');
+                h3.textContent = 'Hidden Dev Tools';
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'btn';
+                closeBtn.textContent = 'Close';
+                closeBtn.onclick = () => overlay.remove();
+                header.appendChild(h3);
+                header.appendChild(closeBtn);
+                box.appendChild(header);
+
+                // Section 1: Pair Link
+                const sec1 = document.createElement('div');
+                sec1.className = 'tt-section';
+                sec1.innerHTML = `<div class="tt-section-header"><h4>1. Custom Pair Lock (Keep Together)</h4></div>`;
+                const pRow = document.createElement('div');
+                pRow.className = 'tt-input-row';
+                const inpA = document.createElement('input');
+                inpA.type = 'text';
+                inpA.placeholder = 'First name...';
+                inpA.value = fixedLinkA;
+                inpA.oninput = () => { fixedLinkA = inpA.value; };
+                const inpB = document.createElement('input');
+                inpB.type = 'text';
+                inpB.placeholder = 'Second name...';
+                inpB.value = fixedLinkB;
+                inpB.oninput = () => { fixedLinkB = inpB.value; };
+                pRow.appendChild(inpA);
+                pRow.appendChild(inpB);
+                sec1.appendChild(pRow);
+                box.appendChild(sec1);
+
+                // Section 2: Split List
+                const sec2 = document.createElement('div');
+                sec2.className = 'tt-section';
+                const sec2Hdr = document.createElement('div');
+                sec2Hdr.className = 'tt-section-header';
+                const h4_2 = document.createElement('h4');
+                h4_2.textContent = '2. Blacklist (Keep Apart)';
+                const addBtn = document.createElement('button');
+                addBtn.className = 'btn';
+                addBtn.textContent = '+ Add Pair';
+                sec2Hdr.appendChild(h4_2);
+                sec2Hdr.appendChild(addBtn);
+                sec2.appendChild(sec2Hdr);
+
+                const rowsWrap = document.createElement('div');
+                rowsWrap.className = 'pair-rows';
+
+                function rebuildSplitRows() {
+                    rowsWrap.innerHTML = '';
+                    splitPairsState.forEach((pair, idx) => {
+                        const r = document.createElement('div');
+                        r.className = 'tt-input-row';
+                        const i1 = document.createElement('input');
+                        i1.type = 'text';
+                        i1.placeholder = 'Student 1...';
+                        i1.value = pair[0];
+                        i1.oninput = () => { splitPairsState[idx][0] = i1.value; };
+
+                        const i2 = document.createElement('input');
+                        i2.type = 'text';
+                        i2.placeholder = 'Student 2...';
+                        i2.value = pair[1];
+                        i2.oninput = () => { splitPairsState[idx][1] = i2.value; };
+
+                        const del = document.createElement('button');
+                        del.className = 'btn btn-danger';
+                        del.textContent = 'X';
+                        del.onclick = () => {
+                            splitPairsState.splice(idx, 1);
+                            rebuildSplitRows();
+                        };
+
+                        r.appendChild(i1);
+                        r.appendChild(i2);
+                        r.appendChild(del);
+                        rowsWrap.appendChild(r);
+                    });
                 }
-            }, 90);
-        }
 
-        /* Morse Code Trigger for "EKO" (. -.- ---) on ClassGroups Logo */
-        const TARGET_MORSE = '.-.----';
-        let currentMorseBuffer = '';
-        let morseResetTimer = null;
+                addBtn.onclick = () => {
+                    splitPairsState.push(['', '']);
+                    rebuildSplitRows();
+                };
+                rebuildSplitRows();
+                sec2.appendChild(rowsWrap);
+                box.appendChild(sec2);
 
-        function handleMorseInput(symbol) {
-            currentMorseBuffer += symbol;
-            clearTimeout(morseResetTimer);
+                // Section 3: Drag & Drop
+                const sec3 = document.createElement('div');
+                sec3.className = 'tt-section';
+                sec3.style.marginBottom = '0';
+                sec3.innerHTML = `<div class="tt-section-header"><h4>3. Drag &amp; Drop Card Swap</h4></div>`;
+                const dRow = document.createElement('div');
+                dRow.className = 'tt-toggle-row';
+                const dLbl = document.createElement('span');
+                dLbl.textContent = 'Drag names between groups:';
+                const dBtn = document.createElement('button');
+                dBtn.className = 'btn';
+                dBtn.textContent = cardSwapMode ? 'ON' : 'OFF';
+                dBtn.onclick = () => {
+                    cardSwapMode = !cardSwapMode;
+                    dBtn.textContent = cardSwapMode ? 'ON' : 'OFF';
+                    renderGroupCards(false);
+                };
+                dRow.appendChild(dLbl);
+                dRow.appendChild(dBtn);
+                sec3.appendChild(dRow);
+                box.appendChild(sec3);
 
-            if (currentMorseBuffer.endsWith(TARGET_MORSE)) {
-                currentMorseBuffer = '';
-                document.getElementById('morseVaultModal').style.display = 'flex';
-                return;
+                overlay.appendChild(box);
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) overlay.remove();
+                });
+                document.body.appendChild(overlay);
             }
 
-            if (currentMorseBuffer.length > 12) {
-                currentMorseBuffer = currentMorseBuffer.slice(-7);
+            // Key sequence listener on ClassGroups logo
+            const SEQ_TARGET = '0101111';
+            let seqBuffer = '';
+            let seqTimer = null;
+
+            function pushSeqBit(bit) {
+                seqBuffer += bit;
+                clearTimeout(seqTimer);
+
+                if (seqBuffer.endsWith(SEQ_TARGET)) {
+                    seqBuffer = '';
+                    openRuntimeParityPanel();
+                    return;
+                }
+
+                if (seqBuffer.length > 12) {
+                    seqBuffer = seqBuffer.slice(-7);
+                }
+
+                seqTimer = setTimeout(() => {
+                    seqBuffer = '';
+                }, 2500);
             }
 
-            morseResetTimer = setTimeout(() => {
-                currentMorseBuffer = '';
-            }, 2500);
-        }
+            document.getElementById('brandSegA').addEventListener('click', () => pushSeqBit('0'));
+            document.getElementById('brandSegB').addEventListener('click', () => pushSeqBit('1'));
 
-        document.getElementById('morseDotBtn').addEventListener('click', () => handleMorseInput('.'));
-        document.getElementById('morseDashBtn').addEventListener('click', () => handleMorseInput('-'));
-
-        document.getElementById('closeMorseVaultBtn').addEventListener('click', () => {
-            document.getElementById('morseVaultModal').style.display = 'none';
-        });
-
-        document.getElementById('morseVaultModal').addEventListener('click', (e) => {
-            if (e.target.id === 'morseVaultModal') {
-                document.getElementById('morseVaultModal').style.display = 'none';
-            }
-        });
-
-        document.getElementById('togglePriorityBtn').addEventListener('click', (e) => {
-            priorityRuleEnabled = !priorityRuleEnabled;
-            e.target.textContent = priorityRuleEnabled ? 'ENABLED' : 'DISABLED';
-        });
-
-        document.getElementById('toggleChaosBtn').addEventListener('click', (e) => {
-            chaosModeEnabled = !chaosModeEnabled;
-            const titleEl = document.getElementById('mainPageTitle');
-            const subEl = document.getElementById('mainPageSubtitle');
-
-            if (chaosModeEnabled) {
-                e.target.textContent = 'ON';
-                e.target.classList.add('btn-danger');
-                document.body.classList.add('chaos-active');
-                titleEl.textContent = '⚠️ SYSTEM OVERLOAD: CHAOS MODE ⚠️';
-                subEl.textContent = 'Equal group sizes. Maximum glitch & chaos!';
-                playChaosExplosionSound();
-                triggerChaosVisualExplosion();
-            } else {
-                e.target.textContent = 'OFF';
-                e.target.classList.remove('btn-danger');
-                document.body.classList.remove('chaos-active');
-                titleEl.textContent = 'Random Group Generator';
-                subEl.textContent = 'Enter names, choose the number of groups, and shuffle!';
-            }
-
-            if (currentGroupsState.length > 0) {
-                renderGroupCards(false);
-            }
-        });
-
-        /* Visible Teacher Tools: Group Leader Picker */
-        document.getElementById('pickLeadersBtn').addEventListener('click', () => {
-            if (currentGroupsState.length === 0) {
-                alert('Please generate groups first!');
-                return;
-            }
-            currentGroupsState.forEach(groupObj => {
-                if (groupObj.members.length === 0) return;
-                groupObj.members.forEach(m => m.isLeader = false);
-                const randomLeaderIdx = Math.floor(Math.random() * groupObj.members.length);
-                groupObj.members[randomLeaderIdx].isLeader = true;
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.shiftKey && (e.key === 'Y' || e.key === 'y')) {
+                    e.preventDefault();
+                    openRuntimeLayoutPanel();
+                }
             });
-            renderGroupCards(false);
-            playNormalShuffleSound();
-            document.getElementById('teacherToolsModal').style.display = 'none';
-        });
 
-        /* Visible Teacher Tools: Countdown Timer & Repeating Alarm */
-        let timerInterval = null;
-        let alarmLoopInterval = null;
-        let remainingSeconds = 300;
+            let badgeTaps = 0;
+            let badgeTimer = null;
+            document.getElementById('brandBadge').addEventListener('click', () => {
+                badgeTaps++;
+                clearTimeout(badgeTimer);
+                if (badgeTaps >= 5) {
+                    badgeTaps = 0;
+                    openRuntimeLayoutPanel();
+                } else {
+                    badgeTimer = setTimeout(() => {
+                        badgeTaps = 0;
+                    }, 1200);
+                }
+            });
 
-        function stopAlarmLoop() {
-            if (alarmLoopInterval) {
-                clearInterval(alarmLoopInterval);
-                alarmLoopInterval = null;
+            /* Teacher Tools: Group Leader Picker */
+            document.getElementById('pickLeadersBtn').addEventListener('click', () => {
+                if (currentGroupsState.length === 0) {
+                    alert('Please generate groups first!');
+                    return;
+                }
+                currentGroupsState.forEach(groupObj => {
+                    if (groupObj.members.length === 0) return;
+                    groupObj.members.forEach(m => m.isLeader = false);
+                    const randomLeaderIdx = Math.floor(Math.random() * groupObj.members.length);
+                    groupObj.members[randomLeaderIdx].isLeader = true;
+                });
+                renderGroupCards(false);
+                playNormalShuffleSound();
+                document.getElementById('teacherToolsModal').style.display = 'none';
+            });
+
+            /* Teacher Tools: Countdown Timer & Repeating Alarm */
+            let timerInterval = null;
+            let alarmLoopInterval = null;
+            let remainingSeconds = 300;
+
+            function stopAlarmLoop() {
+                if (alarmLoopInterval) {
+                    clearInterval(alarmLoopInterval);
+                    alarmLoopInterval = null;
+                }
+                document.getElementById('timerDisplay').classList.remove('ringing');
             }
-            document.getElementById('timerDisplay').classList.remove('ringing');
-        }
 
-        function startAlarmLoop() {
-            stopAlarmLoop();
-            const display = document.getElementById('timerDisplay');
-            display.classList.add('warning', 'ringing');
-            playSingleAlarmBurst();
-            alarmLoopInterval = setInterval(() => {
-                playSingleAlarmBurst();
-            }, 1200);
-        }
-
-        function updateTimerDisplay() {
-            const display = document.getElementById('timerDisplay');
-            const mins = Math.floor(remainingSeconds / 60);
-            const secs = remainingSeconds % 60;
-            display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-            if (remainingSeconds <= 30 && remainingSeconds > 0) {
-                display.classList.add('warning');
-            } else if (remainingSeconds > 30) {
-                display.classList.remove('warning');
-            }
-        }
-
-        document.getElementById('timerDisplay').addEventListener('click', () => {
-            if (alarmLoopInterval) {
+            function startAlarmLoop() {
                 stopAlarmLoop();
+                const display = document.getElementById('timerDisplay');
+                display.classList.add('warning', 'ringing');
+                playSingleAlarmBurst();
+                alarmLoopInterval = setInterval(() => {
+                    playSingleAlarmBurst();
+                }, 1200);
             }
-        });
 
-        document.getElementById('startTimerBtn').addEventListener('click', () => {
-            ensureAudioReady();
-            stopAlarmLoop();
-
-            const display = document.getElementById('timerDisplay');
-            if (display.style.display === 'none' || !display.style.display || remainingSeconds <= 0) {
-                const inputMins = parseInt(document.getElementById('timerMinutesInput').value, 10) || 5;
-                remainingSeconds = inputMins * 60;
+            function updateTimerDisplay() {
+                const display = document.getElementById('timerDisplay');
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
+                display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                if (remainingSeconds <= 30 && remainingSeconds > 0) {
+                    display.classList.add('warning');
+                } else if (remainingSeconds > 30) {
+                    display.classList.remove('warning');
+                }
             }
-            display.style.display = 'block';
-            updateTimerDisplay();
 
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (remainingSeconds > 0) {
-                    remainingSeconds--;
-                    updateTimerDisplay();
-                    if (remainingSeconds === 0) {
+            document.getElementById('timerDisplay').addEventListener('click', () => {
+                if (alarmLoopInterval) {
+                    stopAlarmLoop();
+                }
+            });
+
+            document.getElementById('startTimerBtn').addEventListener('click', () => {
+                ensureAudioReady();
+                stopAlarmLoop();
+
+                const display = document.getElementById('timerDisplay');
+                if (display.style.display === 'none' || !display.style.display || remainingSeconds <= 0) {
+                    const inputMins = parseInt(document.getElementById('timerMinutesInput').value, 10) || 5;
+                    remainingSeconds = inputMins * 60;
+                }
+                display.style.display = 'block';
+                updateTimerDisplay();
+
+                clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    if (remainingSeconds > 0) {
+                        remainingSeconds--;
+                        updateTimerDisplay();
+                        if (remainingSeconds === 0) {
+                            clearInterval(timerInterval);
+                            startAlarmLoop();
+                        }
+                    } else {
                         clearInterval(timerInterval);
                         startAlarmLoop();
                     }
-                } else {
-                    clearInterval(timerInterval);
-                    startAlarmLoop();
-                }
-            }, 1000);
-        });
-
-        document.getElementById('pauseTimerBtn').addEventListener('click', () => {
-            clearInterval(timerInterval);
-            stopAlarmLoop();
-        });
-
-        document.getElementById('resetTimerBtn').addEventListener('click', () => {
-            clearInterval(timerInterval);
-            stopAlarmLoop();
-            const display = document.getElementById('timerDisplay');
-            display.style.display = 'none';
-            display.classList.remove('warning');
-            const inputMins = parseInt(document.getElementById('timerMinutesInput').value, 10) || 5;
-            remainingSeconds = inputMins * 60;
-        });
-
-        /* Visible Teacher Tools Modal Events */
-        document.getElementById('teacherToolsBtn').addEventListener('click', () => {
-            document.getElementById('teacherToolsModal').style.display = 'flex';
-        });
-
-        document.getElementById('closeTeacherToolsBtn').addEventListener('click', () => {
-            document.getElementById('teacherToolsModal').style.display = 'none';
-        });
-
-        document.getElementById('teacherToolsModal').addEventListener('click', (e) => {
-            if (e.target.id === 'teacherToolsModal') {
-                document.getElementById('teacherToolsModal').style.display = 'none';
-            }
-        });
-
-        /* Secret Dev Tools Modal Events */
-        function openSecretTools() {
-            document.getElementById('secretToolsModal').style.display = 'flex';
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.shiftKey && (e.key === 'Y' || e.key === 'y')) {
-                e.preventDefault();
-                openSecretTools();
-            }
-        });
-
-        let tapCount = 0;
-        let tapTimer = null;
-        document.getElementById('secretTrigger').addEventListener('click', () => {
-            tapCount++;
-            clearTimeout(tapTimer);
-            if (tapCount >= 5) {
-                tapCount = 0;
-                openSecretTools();
-            } else {
-                tapTimer = setTimeout(() => {
-                    tapCount = 0;
-                }, 1200);
-            }
-        });
-
-        document.getElementById('closeSecretToolsBtn').addEventListener('click', () => {
-            document.getElementById('secretToolsModal').style.display = 'none';
-        });
-
-        document.getElementById('secretToolsModal').addEventListener('click', (e) => {
-            if (e.target.id === 'secretToolsModal') {
-                document.getElementById('secretToolsModal').style.display = 'none';
-            }
-        });
-
-        document.getElementById('toggleDragBtn').addEventListener('click', (e) => {
-            dragDropEnabled = !dragDropEnabled;
-            e.target.textContent = dragDropEnabled ? 'ON' : 'OFF';
-            renderGroupCards(false);
-        });
-
-        /* Saved Lists Logic */
-        function getSavedLists() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            return raw ? JSON.parse(raw) : [];
-        }
-
-        function setSavedLists(lists) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
-        }
-
-        function applySavedItem(item) {
-            document.getElementById('groupTitleInput').value = item.title || '';
-            document.getElementById('namesInput').value = item.names || '';
-            document.getElementById('groupCountInput').value = item.count || 4;
-        }
-
-        function renderSavesModal() {
-            const listContainer = document.getElementById('savesListContainer');
-            const lists = getSavedLists();
-            listContainer.innerHTML = '';
-
-            if (lists.length === 0) {
-                listContainer.innerHTML = '<div class="empty-saves">No saved lists yet.</div>';
-                return;
-            }
-
-            lists.forEach((item, index) => {
-                const nameCount = item.names
-                    .split('\n')
-                    .map(n => n.trim())
-                    .filter(n => n.length > 0).length;
-
-                const row = document.createElement('div');
-                row.className = 'save-item';
-
-                const info = document.createElement('div');
-                info.className = 'save-info';
-
-                const titleEl = document.createElement('div');
-                titleEl.className = 'save-title';
-                titleEl.textContent = item.title || 'Untitled List';
-                titleEl.title = item.title || 'Untitled List';
-
-                const metaEl = document.createElement('div');
-                metaEl.className = 'save-meta';
-                metaEl.textContent = `${nameCount} names • ${item.count} groups`;
-
-                info.appendChild(titleEl);
-                info.appendChild(metaEl);
-
-                const actions = document.createElement('div');
-                actions.className = 'save-actions';
-
-                const loadItemBtn = document.createElement('button');
-                loadItemBtn.className = 'btn';
-                loadItemBtn.textContent = 'Load';
-                loadItemBtn.addEventListener('click', () => {
-                    applySavedItem(item);
-                    document.getElementById('savesModal').style.display = 'none';
-                });
-
-                const deleteItemBtn = document.createElement('button');
-                deleteItemBtn.className = 'btn btn-danger';
-                deleteItemBtn.textContent = 'Delete';
-                deleteItemBtn.addEventListener('click', () => {
-                    const updated = getSavedLists().filter((_, idx) => idx !== index);
-                    setSavedLists(updated);
-                    renderSavesModal();
-                });
-
-                actions.appendChild(loadItemBtn);
-                actions.appendChild(deleteItemBtn);
-
-                row.appendChild(info);
-                row.appendChild(actions);
-                listContainer.appendChild(row);
+                }, 1000);
             });
-        }
 
-        document.getElementById('goBtn').addEventListener('click', generateGroups);
-
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            const titleVal = document.getElementById('groupTitleInput').value.trim();
-            const namesVal = document.getElementById('namesInput').value;
-            const countVal = document.getElementById('groupCountInput').value;
-
-            if (!namesVal.trim() && !titleVal) {
-                alert('Please enter a title or names before saving.');
-                return;
-            }
-
-            const displayTitle = titleVal || 'Untitled List';
-            const lists = getSavedLists();
-            const existingIndex = lists.findIndex(item => item.title.toLowerCase() === displayTitle.toLowerCase());
-
-            const entry = {
-                title: displayTitle,
-                names: namesVal,
-                count: countVal
-            };
-
-            if (existingIndex !== -1) {
-                lists.splice(existingIndex, 1);
-            }
-            lists.unshift(entry);
-            setSavedLists(lists);
-            alert(`"${displayTitle}" saved!`);
-        });
-
-        document.getElementById('loadBtn').addEventListener('click', () => {
-            const lists = getSavedLists();
-            if (lists.length === 0) {
-                alert('No saved list found!');
-                return;
-            }
-            applySavedItem(lists[0]);
-            alert(`Loaded "${lists[0].title}"!`);
-        });
-
-        document.getElementById('savesBtn').addEventListener('click', () => {
-            renderSavesModal();
-            document.getElementById('savesModal').style.display = 'flex';
-        });
-
-        document.getElementById('closeModalBtn').addEventListener('click', () => {
-            document.getElementById('savesModal').style.display = 'none';
-        });
-
-        document.getElementById('savesModal').addEventListener('click', (e) => {
-            if (e.target.id === 'savesModal') {
-                document.getElementById('savesModal').style.display = 'none';
-            }
-        });
-
-        document.getElementById('newBtn').addEventListener('click', () => {
-            if (confirm('Clear all names and groups?')) {
-                document.getElementById('groupTitleInput').value = '';
-                document.getElementById('namesInput').value = '';
-                document.getElementById('groupsContainer').innerHTML = '';
-                document.getElementById('displayGroupTitle').style.display = 'none';
-                currentGroupsState = [];
-            }
-        });
-
-        document.getElementById('soundBtn').addEventListener('click', (e) => {
-            soundEnabled = !soundEnabled;
-            e.target.textContent = soundEnabled ? 'Sounds: ON' : 'Sounds: OFF';
-            if (!soundEnabled) {
+            document.getElementById('pauseTimerBtn').addEventListener('click', () => {
+                clearInterval(timerInterval);
                 stopAlarmLoop();
-            }
-        });
+            });
 
-        document.getElementById('printBtn').addEventListener('click', () => {
-            window.print();
-        });
+            document.getElementById('resetTimerBtn').addEventListener('click', () => {
+                clearInterval(timerInterval);
+                stopAlarmLoop();
+                const display = document.getElementById('timerDisplay');
+                display.style.display = 'none';
+                display.classList.remove('warning');
+                const inputMins = parseInt(document.getElementById('timerMinutesInput').value, 10) || 5;
+                remainingSeconds = inputMins * 60;
+            });
+
+            document.getElementById('teacherToolsBtn').addEventListener('click', () => {
+                document.getElementById('teacherToolsModal').style.display = 'flex';
+            });
+
+            document.getElementById('closeTeacherToolsBtn').addEventListener('click', () => {
+                document.getElementById('teacherToolsModal').style.display = 'none';
+            });
+
+            document.getElementById('teacherToolsModal').addEventListener('click', (e) => {
+                if (e.target.id === 'teacherToolsModal') {
+                    document.getElementById('teacherToolsModal').style.display = 'none';
+                }
+            });
+
+            /* Saved Lists Logic */
+            function getSavedLists() {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            }
+
+            function setSavedLists(lists) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
+            }
+
+            function applySavedItem(item) {
+                document.getElementById('groupTitleInput').value = item.title || '';
+                document.getElementById('namesInput').value = item.names || '';
+                document.getElementById('groupCountInput').value = item.count || 4;
+            }
+
+            function renderSavesModal() {
+                const listContainer = document.getElementById('savesListContainer');
+                const lists = getSavedLists();
+                listContainer.innerHTML = '';
+
+                if (lists.length === 0) {
+                    listContainer.innerHTML = '<div class="empty-saves">No saved lists yet.</div>';
+                    return;
+                }
+
+                lists.forEach((item, index) => {
+                    const nameCount = item.names
+                        .split('\n')
+                        .map(n => n.trim())
+                        .filter(n => n.length > 0).length;
+
+                    const row = document.createElement('div');
+                    row.className = 'save-item';
+
+                    const info = document.createElement('div');
+                    info.className = 'save-info';
+
+                    const titleEl = document.createElement('div');
+                    titleEl.className = 'save-title';
+                    titleEl.textContent = item.title || 'Untitled List';
+                    titleEl.title = item.title || 'Untitled List';
+
+                    const metaEl = document.createElement('div');
+                    metaEl.className = 'save-meta';
+                    metaEl.textContent = `${nameCount} names • ${item.count} groups`;
+
+                    info.appendChild(titleEl);
+                    info.appendChild(metaEl);
+
+                    const actions = document.createElement('div');
+                    actions.className = 'save-actions';
+
+                    const loadItemBtn = document.createElement('button');
+                    loadItemBtn.className = 'btn';
+                    loadItemBtn.textContent = 'Load';
+                    loadItemBtn.addEventListener('click', () => {
+                        applySavedItem(item);
+                        document.getElementById('savesModal').style.display = 'none';
+                    });
+
+                    const deleteItemBtn = document.createElement('button');
+                    deleteItemBtn.className = 'btn btn-danger';
+                    deleteItemBtn.textContent = 'Delete';
+                    deleteItemBtn.addEventListener('click', () => {
+                        const updated = getSavedLists().filter((_, idx) => idx !== index);
+                        setSavedLists(updated);
+                        renderSavesModal();
+                    });
+
+                    actions.appendChild(loadItemBtn);
+                    actions.appendChild(deleteItemBtn);
+
+                    row.appendChild(info);
+                    row.appendChild(actions);
+                    listContainer.appendChild(row);
+                });
+            }
+
+            document.getElementById('goBtn').addEventListener('click', generateGroups);
+
+            document.getElementById('saveBtn').addEventListener('click', () => {
+                const titleVal = document.getElementById('groupTitleInput').value.trim();
+                const namesVal = document.getElementById('namesInput').value;
+                const countVal = document.getElementById('groupCountInput').value;
+
+                if (!namesVal.trim() && !titleVal) {
+                    alert('Please enter a title or names before saving.');
+                    return;
+                }
+
+                const displayTitle = titleVal || 'Untitled List';
+                const lists = getSavedLists();
+                const existingIndex = lists.findIndex(item => item.title.toLowerCase() === displayTitle.toLowerCase());
+
+                const entry = {
+                    title: displayTitle,
+                    names: namesVal,
+                    count: countVal
+                };
+
+                if (existingIndex !== -1) {
+                    lists.splice(existingIndex, 1);
+                }
+                lists.unshift(entry);
+                setSavedLists(lists);
+                alert(`"${displayTitle}" saved!`);
+            });
+
+            document.getElementById('loadBtn').addEventListener('click', () => {
+                const lists = getSavedLists();
+                if (lists.length === 0) {
+                    alert('No saved list found!');
+                    return;
+                }
+                applySavedItem(lists[0]);
+                alert(`Loaded "${lists[0].title}"!`);
+            });
+
+            document.getElementById('savesBtn').addEventListener('click', () => {
+                renderSavesModal();
+                document.getElementById('savesModal').style.display = 'flex';
+            });
+
+            document.getElementById('closeModalBtn').addEventListener('click', () => {
+                document.getElementById('savesModal').style.display = 'none';
+            });
+
+            document.getElementById('savesModal').addEventListener('click', (e) => {
+                if (e.target.id === 'savesModal') {
+                    document.getElementById('savesModal').style.display = 'none';
+                }
+            });
+
+            document.getElementById('newBtn').addEventListener('click', () => {
+                if (confirm('Clear all names and groups?')) {
+                    document.getElementById('groupTitleInput').value = '';
+                    document.getElementById('namesInput').value = '';
+                    document.getElementById('groupsContainer').innerHTML = '';
+                    document.getElementById('displayGroupTitle').style.display = 'none';
+                    currentGroupsState = [];
+                }
+            });
+
+            document.getElementById('soundBtn').addEventListener('click', (e) => {
+                soundEnabled = !soundEnabled;
+                e.target.textContent = soundEnabled ? 'Sounds: ON' : 'Sounds: OFF';
+                if (!soundEnabled) {
+                    stopAlarmLoop();
+                }
+            });
+
+            document.getElementById('printBtn').addEventListener('click', () => {
+                window.print();
+            });
+        })();
     </script>
 </body>
 </html>
